@@ -1,15 +1,12 @@
 ﻿using MicroBlog.V3.Interfaces;
-using Microsoft.WindowsAzure.Storage.Table;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace MicroBlog.V3.Services.Models
 {
-    internal class ClientArticle : IClientArticle
+    internal class CompleteArticle : IClientArticle
     {
 
-        public ClientArticle(IClientArticle article, Guid id)
+        public CompleteArticle(IClientArticle article, Guid id)
         {
             Url = article.Url;
             Title = article.Title;
@@ -22,7 +19,7 @@ namespace MicroBlog.V3.Services.Models
 
         }
 
-        public ClientArticle(IArticle article, IArticleDetails details)
+        public CompleteArticle(IArticle article, IArticleDetails details)
         {
             Url = details.Url;
             Title = article.Title;
@@ -31,7 +28,7 @@ namespace MicroBlog.V3.Services.Models
             Created = details.Created;
             Published = details.Published;
             Article = article.ArticleText;
-            Id = article.Id; 
+            Id = article.Id;
         }
 
         public string Url { get; private set; }

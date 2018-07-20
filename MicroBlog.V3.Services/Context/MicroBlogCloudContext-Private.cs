@@ -98,7 +98,7 @@ namespace MicroBlog.V3.Services.Context
         public static MicroBlogContext GetContext()
         {
             MicroBlogConfiguration.Options opts = MicroBlogConfiguration.GetOptions();
-            return new MicroBlogContext(opts.StorageAccount, opts.ArticleBlob, opts.ArticleDetails, opts.TagQ, opts.TagsTable);
+            return new MicroBlogContext(opts.StorageAccount, opts.ArticleBlob, opts.ArticleDetails, opts.TagQueue, opts.TagTable);
         }
     }
 }

@@ -20,6 +20,12 @@ namespace MicroBlog.V3.Services.Context
         CloudBlobClient _blobClient;
         CloudQueueClient _queueClient;
         CloudTableClient _tableClient;
+
+        internal SimpleQueueHelper CreateQueueHelper(string tagQueueName)
+        {
+            return new SimpleQueueHelper(this, tagQueueName);
+        }
+
         CloudFileClient _fileClient;
         ConcurrentDictionary<string, CloudQueue> Queues = new ConcurrentDictionary<string, CloudQueue>();
         ConcurrentDictionary<string, CloudBlobContainer> BlobContainers = new ConcurrentDictionary<string, CloudBlobContainer>();
@@ -186,6 +192,23 @@ namespace MicroBlog.V3.Services.Context
                 return returnResults;
             }
 
+        }
+
+        public class SimpleQueueHelper
+        {
+            CloudStorageContext cscCtx;
+            string QueueName;
+            public SimpleQueueHelper(CloudStorageContext csc, string queueName)
+            {
+                this.cscCtx = csc;
+                QueueName= queueName;
+            }
+
+            public async Task InsertIntoQueue(string serialisedMessage)
+            {
+                var queue = await this.cscCtx.GetQueue(this.QueueName);
+                await queue.AddMessageAsync(new CloudQueueMessage(serialisedMessage));
+            }
         }
     }
 }

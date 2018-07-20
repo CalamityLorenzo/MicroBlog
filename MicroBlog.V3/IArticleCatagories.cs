@@ -4,8 +4,9 @@ using System.Text;
 
 namespace MicroBlog.V3.Interfaces
 {
-    public interface IEntityId<T>
+    public interface IArticleCategories
     {
-        T Id { get; }
+        Guid Id { get; }
+        IEnumerable<string> Tags { get; }
     }
 }

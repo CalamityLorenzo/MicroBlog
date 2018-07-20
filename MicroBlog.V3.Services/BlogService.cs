@@ -56,7 +56,7 @@ namespace MicroBlog.V3.Services
             await articleDetailsStorage.InsertToTable(articleDetails);
             await  articleBlobStorage.AddNewJsonFile (articleBlobString, $"{Id}.json");
           
-            return new ClientArticle(article, Id);
+            return new CompleteArticle(article, Id);
         }
 
         public async Task<IClientArticle> Get(Guid Id)
@@ -64,7 +64,7 @@ namespace MicroBlog.V3.Services
             var jsonBlob = await articleBlobStorage.GetJsonFile($"{Id}.json");
             var article = JsonConvert.DeserializeObject<ArticleFileData>(jsonBlob);
             var details = await this.articleDetailsStorage.GetEntity<ArticleDetails>(Id.ToString(), ArticleDetails.RowKeyDef);
-            return new ClientArticle(article, details);
+            return new CompleteArticle(article, details);
         }
 
         public async Task Delete(IClientArticle article)

@@ -7,20 +7,24 @@ namespace MicroBlog.V3.Services.Context
         public class Options
         {
             public Options() { }
-            public Options(string StorageAccount, string ArticleBlob, string ArticleDetails, string TagQ, string TagsTable)
+            public Options(string StorageAccount, string ArticleBlob, string ArticleDetails, string TagQueue, string TagTable, string CategoryQueue, string CategoryTable)
             {
                 this.StorageAccount = StorageAccount;
                 this.ArticleBlob = ArticleBlob;
                 this.ArticleDetails = ArticleDetails;
-                this.TagQ = TagQ;
-                this.TagsTable = TagsTable;
+                this.TagQueue = TagQueue;
+                this.TagTable = TagTable;
+                this.CategoryQueue = CategoryQueue;
+                this.CategoryTable = CategoryTable;
             }
 
             public string StorageAccount { get; internal set; }
             public string ArticleBlob { get; internal set; }
             public string ArticleDetails { get; internal set; }
-            public string TagQ { get; internal set; }
-            public string TagsTable { get; internal set; }
+            public string TagQueue { get; internal set; }
+            public string TagTable { get; internal set; }
+            public string CategoryQueue { get; internal set; }
+            public string CategoryTable { get; internal set; }
         }
 
 

@@ -7,6 +7,11 @@ namespace MicroBlog.V3.Interfaces
 {
     public interface ITagService: IBasicRepo<IArticleTags>
     {
-        Task<IArticleTags> Create(List<string> tags, Guid Id);
+        Task<IArticleTags> Create(IEnumerable<string> tags, Guid Id);
+    }
+
+    public interface ICategoryService : IBasicRepo<IArticleCategories>
+    {
+        Task<IArticleCategories> Create(IEnumerable<string> tags, Guid Id);
     }
 }

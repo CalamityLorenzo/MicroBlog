@@ -9,9 +9,9 @@ using System.Text;
 
 namespace MicroBlog.V3.Services.Models
 {
-    class ArticleCategories : TableEntity, IArticleCategories
+    class ArticleTags : TableEntity, IArticleTags
     {
-        public ArticleCategories()
+        public ArticleTags()
         {
         }
 
@@ -24,9 +24,9 @@ namespace MicroBlog.V3.Services.Models
             return leDic;
         }
 
-        public ArticleCategories(IArticleCategories tags) : this(tags.Tags, tags.Id) { }
+        public ArticleTags(IArticleTags tags) : this(tags.Tags, tags.Id) { }
 
-        public ArticleCategories(IEnumerable<string> Tags, Guid Id)
+        public ArticleTags(IEnumerable<string> Tags, Guid Id)
         {
             this.Tags = new HashSet<string>(Tags);
             this.PartitionKey = Id.ToString();
@@ -44,9 +44,9 @@ namespace MicroBlog.V3.Services.Models
             this.Tags = JsonConvert.DeserializeObject<List<string>>(properties["Tags"].StringValue);
         }
 
-        private static Lazy<ArticleCategories> EmptyVersion = new Lazy<ArticleCategories>(() => new ArticleCategories(new List<string>(), Guid.Empty));
+        private static Lazy<ArticleTags> EmptyVersion = new Lazy<ArticleTags>(() => new ArticleTags(new List<string>(), Guid.Empty));
 
-        internal static ArticleCategories Empty()
+        internal static ArticleTags Empty()
         {
             return EmptyVersion.Value;
         }
