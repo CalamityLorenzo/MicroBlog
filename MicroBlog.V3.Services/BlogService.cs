@@ -1,0 +1,99 @@
+﻿using MicroBlog.V3.Interfaces;
+using MicroBlog.V3.Services.Context;
+using MicroBlog.V3.Services.Models;
+using Newtonsoft.Json;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using static MicroBlog.V3.Services.Context.CloudStorageContext;
+using static MicroBlog.V3.Services.Context.MicroBlogConfiguration;
+
+namespace MicroBlog.V3.Services
+{
+    public class BlogService : IBlogService
+    {
+        private CloudStorageContext cscCtx;
+
+        private SimpleBlobHelper articleBlobStorage;
+        private SimpleTableHelper articleDetailsStorage;
+
+        internal BlogService(CloudStorageContext cscCtx, Options opts)
+        {
+            articleBlobStorage = cscCtx.CreateBloblHelper(opts.ArticleBlob);
+            articleDetailsStorage = cscCtx.CreateTableHelper(opts.ArticleDetails);
+            this.cscCtx = cscCtx;
+        }
+
+        public async Task<IClientArticle> Create(IClientArticle article)
+        {
+            try
+            {
+                return await this.InsertArticle(article, Guid.NewGuid());
+            }
+            catch (AggregateException excep)
+            {
+                foreach (var ex in excep.InnerExceptions)
+                {
+                    Console.Write(ex.Message + " " + ex.StackTrace);
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                Console.ReadLine();
+                return null;
+            }
+        }
+
+        private async Task<IClientArticle> InsertArticle(IClientArticle article, Guid Id)
+        {
+            // Turn the basic article into a Json blob
+            var articleData = new ArticleFileData(article, Id);
+            // Then store the info in table
+            var articleDetails = new ArticleDetails(article, Id);
+            var articleBlobString = JsonConvert.SerializeObject(articleData);
+            await articleDetailsStorage.InsertToTable(articleDetails);
+            await  articleBlobStorage.AddNewJsonFile (articleBlobString, $"{Id}.json");
+          
+            return new ClientArticle(article, Id);
+        }
+
+        public async Task<IClientArticle> Get(Guid Id)
+        {
+            var jsonBlob = await articleBlobStorage.GetJsonFile($"{Id}.json");
+            var article = JsonConvert.DeserializeObject<ArticleFileData>(jsonBlob);
+            var details = await this.articleDetailsStorage.GetEntity<ArticleDetails>(Id.ToString(), ArticleDetails.RowKeyDef);
+            return new ClientArticle(article, details);
+        }
+
+        public async Task Delete(IClientArticle article)
+        {
+            await this.Delete(article.Id);
+        }
+
+        public async Task Delete(Guid Id)
+        {
+
+            var details = await this.articleDetailsStorage.GetEntity<ArticleDetails>(Id.ToString(), ArticleDetails.RowKeyDef);
+            await this.articleDetailsStorage.DeleteEntity(details);
+            await this.articleBlobStorage.DeleteBlob($"{Id}.json");
+        }
+
+        public async Task<IClientArticle> Update(IClientArticle article)
+        {
+
+            // Update is actually a delete then re-insert
+            // Maintaining the Id
+            await this.Delete(article.Id);
+            return await this.InsertArticle(article, article.Id);
+
+        }
+
+        public static IBlogService GetManager()
+        {
+            var opts = MicroBlogConfiguration.GetOptions();
+            return new BlogService(new CloudStorageContext(opts.StorageAccount), opts );
+        }
+    }
+}
