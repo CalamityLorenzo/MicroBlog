@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using MicroBlog.V3.Services;
 using MicroBlog.V3.Functions.Models.App;
 using MicroBlog.V3.Interfaces;
+using MicroBlog.V3.Functions.Settings;
 
 namespace MicroBlog.V3.Functions
 {
@@ -20,9 +21,8 @@ namespace MicroBlog.V3.Functions
         public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequest req, TraceWriter log, ExecutionContext context)
         {
             log.Info("CreateBlogEntry processed a request.");
-            AppConfigSettings.ConfigureBlogOptions(context.FunctionAppDirectory);
-            string requestBody = new StreamReader(req.Body).ReadToEnd();
-            var articleInput = JsonConvert.DeserializeObject<FetchArticleInput>(requestBody);
+            
+            var articleInput = AppConfigSettings.IngestRequest<CompleteClientArticle>(req, context);
 
             // You can either retrieve an article by Id or it's relative Url
             var blogService = BlogService.GetManager();
@@ -35,15 +35,14 @@ namespace MicroBlog.V3.Functions
                 tagService.Get(article.Id),
                 categoryService.Get(article.Id)
             };
-
-            
             Task.WaitAll(Tasks);
+
             var tagTask = Tasks[0] as Task<IArticleTags>;
             var tagResult = tagTask.Result;
 
             var catTask = Tasks[1] as Task<IArticleCategories>;
             var catResults = catTask.Result;
-            return new OkObjectResult(new NewBlogEntry(article, 
+            return new OkObjectResult(new CompleteClientArticle(article, 
                                       new ArticleTags(tagResult.Tags, article.Id), 
                                       new ArticleCategories(catResults.Tags, article.Id)));
         }

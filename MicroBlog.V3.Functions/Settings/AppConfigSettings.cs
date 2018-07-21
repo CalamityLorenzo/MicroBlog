@@ -1,9 +1,13 @@
 ﻿using MicroBlog.V3.Services.Context;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Azure.WebJobs;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
-namespace MicroBlog.V3.Functions
+namespace MicroBlog.V3.Functions.Settings
 {
     internal class AppConfigSettings
     {
@@ -30,6 +34,13 @@ namespace MicroBlog.V3.Functions
                                 options["Values:CategoryTable"]                                
                                 ));
 
+        }
+
+        public static T IngestRequest<T>(HttpRequest req, ExecutionContext context)
+        {
+            AppConfigSettings.ConfigureBlogOptions(context.FunctionAppDirectory);
+            string requestBody = new StreamReader(req.Body).ReadToEnd();
+            return JsonConvert.DeserializeObject<T>(requestBody);
         }
     }
 }

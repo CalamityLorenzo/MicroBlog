@@ -5,11 +5,11 @@ using System.Text;
 
 namespace MicroBlog.V3.Functions.Models.App
 {
-    class NewBlogEntry : ICompleteArticle
+    class CompleteClientArticle : ICompleteArticle
     {
-        public NewBlogEntry(){}
+        public CompleteClientArticle(){}
 
-        public NewBlogEntry(string url, string title, string synopsis, string article, string author, IEnumerable<string>Tags, IEnumerable<string>Categories,  DateTime created, DateTime? published)
+        public CompleteClientArticle(string url, string title, string synopsis, string article, string author, IEnumerable<string>Tags, IEnumerable<string>Categories,  DateTime created, DateTime? published)
         {
             Url = url ?? throw new ArgumentNullException(nameof(url));
             Title = title ?? throw new ArgumentNullException(nameof(title));
@@ -22,7 +22,7 @@ namespace MicroBlog.V3.Functions.Models.App
             Published = published;
         }
 
-        public NewBlogEntry(IClientArticle article, IArticleTags tags, IArticleCategories categories) : this(article.Url, article.Title, article.Synopsis, article.Article, article.Author, tags.Tags, categories.Tags, article.Created, article.Published)
+        public CompleteClientArticle(IClientArticle article, IArticleTags tags, IArticleCategories categories) : this(article.Url, article.Title, article.Synopsis, article.Article, article.Author, tags.Tags, categories.Tags, article.Created, article.Published)
         {
             Id = article.Id;
         }
