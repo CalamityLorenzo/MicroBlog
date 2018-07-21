@@ -53,7 +53,8 @@ namespace MicroBlog.V3.Services
         public async Task<IArticleTags> Get(Guid EntityId)
         {
             var stringId = EntityId.ToString();
-            return await tagTable.GetEntity<ArticleTags>(stringId, stringId);
+            var tags = await tagTable.GetEntity<ArticleTags>(stringId, stringId);
+            return (tags == null)? new ArticleTags(EntityId): tags;
         }
 
         public async Task<IArticleTags> Update(IArticleTags Entity)

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace MicroBlog.V3.Functions.Models
+namespace MicroBlog.V3.Functions.Models.App
 {
     internal class ArticleCategories : IArticleCategories
     {

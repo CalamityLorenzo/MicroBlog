@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace MicroBlog.V3.Functions.Models
+namespace MicroBlog.V3.Functions.Models.App
 {
     class NewBlogEntry : ICompleteArticle
     {

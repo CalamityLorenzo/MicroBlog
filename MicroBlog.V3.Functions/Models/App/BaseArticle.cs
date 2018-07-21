@@ -1,7 +1,7 @@
 ﻿using MicroBlog.V3.Interfaces;
 using System;
 
-namespace MicroBlog.V3.Functions.Models
+namespace MicroBlog.V3.Functions.Models.App
 {
     internal class BaseArticle : IClientArticle
 
@@ -16,6 +16,18 @@ namespace MicroBlog.V3.Functions.Models
             this.Author = totalEntry.Author;
             this.Article = totalEntry.Article;
             this.Title = totalEntry.Title;     
+        }
+
+        public BaseArticle(IClientArticle article)
+        {
+            this.Id = article.Id;
+            this.Url = article.Url;
+            this.Synopsis = article.Synopsis;
+            this.Published = article.Published;
+            this.Created = article.Created;
+            this.Author = article.Author;
+            this.Article = article.Article;
+            this.Title = article.Title;
         }
 
         public Guid Id { get; set; }

@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using MicroBlog.V3.Functions.Models;
 using MicroBlog.V3.Services;
 using System.Threading.Tasks;
+using MicroBlog.V3.Functions.Models.App;
 
 namespace MicroBlog.V3.Functions
 {

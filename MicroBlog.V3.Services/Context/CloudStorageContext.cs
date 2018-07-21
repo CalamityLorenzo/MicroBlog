@@ -177,10 +177,10 @@ namespace MicroBlog.V3.Services.Context
                 return entity.Result as T;
             }
 
-            public async Task<IEnumerable<TEntity>> EntityQuery<TEntity>(string tableName, string qry, params string[] columns) where TEntity : ITableEntity, new()
+            public async Task<IEnumerable<TEntity>> EntityQuery<TEntity>(string qryString, params string[] columns) where TEntity : ITableEntity, new()
             {
-                var table = await cscCtx.GetTable(tableName);
-                var tQuery = new TableQuery<TEntity>() { FilterString = qry, SelectColumns = columns };
+                var table = await cscCtx.GetTable(TableName);
+                var tQuery = new TableQuery<TEntity>() { FilterString = qryString, SelectColumns = columns };
                 var token = new TableContinuationToken();
                 var returnResults = new List<TEntity>();
                 do

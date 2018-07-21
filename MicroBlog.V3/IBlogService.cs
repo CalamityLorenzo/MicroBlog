@@ -5,5 +5,7 @@ using System.Threading.Tasks;
 
 namespace MicroBlog.V3.Interfaces
 {
-    public interface IBlogService : IBasicRepo<IClientArticle> { }
+    public interface IBlogService : IBasicRepo<IClientArticle> {
+        Task<IClientArticle> GetByUrl(string url);
+    }
 }

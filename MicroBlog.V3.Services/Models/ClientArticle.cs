@@ -5,7 +5,16 @@ namespace MicroBlog.V3.Services.Models
 {
     internal class CompleteArticle : IClientArticle
     {
+        // Creates an empty shell of article
+        // explistlyees
+        internal CompleteArticle()
+        {
+            Id = Guid.Empty;
+            (Url, Title, Synopsis, Article) = ("", "", "", "");
+            Published = null;
+            Created = DateTime.MinValue;
 
+        }
         public CompleteArticle(IClientArticle article, Guid id)
         {
             Url = article.Url;
@@ -39,5 +48,12 @@ namespace MicroBlog.V3.Services.Models
         public DateTime Created { get; private set; }
         public DateTime? Published { get; private set; }
         public Guid Id { get; private set; }
+
+        private static Lazy<CompleteArticle> emptyArticle = new Lazy<CompleteArticle>(() => new CompleteArticle());
+
+        internal static IClientArticle Empty()
+        {
+            return CompleteArticle.emptyArticle.Value;
+        }
     }
 }

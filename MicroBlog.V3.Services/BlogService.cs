@@ -1,6 +1,7 @@
 ﻿using MicroBlog.V3.Interfaces;
 using MicroBlog.V3.Services.Context;
 using MicroBlog.V3.Services.Models;
+using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
@@ -22,6 +23,24 @@ namespace MicroBlog.V3.Services
             articleBlobStorage = cscCtx.CreateBloblHelper(opts.ArticleBlob);
             articleDetailsStorage = cscCtx.CreateTableHelper(opts.ArticleDetails);
             this.cscCtx = cscCtx;
+        }
+
+        public async Task<IClientArticle> GetByUrl(string url)
+        {
+            var qry = TableQuery.GenerateFilterCondition("Url", QueryComparisons.Equal, url);
+            var results = (await articleDetailsStorage.EntityQuery<ArticleDetails>(qry)).ToList();
+            if (results.Count > 0)
+            {
+                var details = results.First();
+                var jsonBlob = await articleBlobStorage.GetJsonFile($"{details.Id}.json");
+                var article = JsonConvert.DeserializeObject<ArticleFileData>(jsonBlob);
+                return new CompleteArticle(article, details);
+
+            }
+            else
+            {
+                return CompleteArticle.Empty();
+            }
         }
 
         public async Task<IClientArticle> Create(IClientArticle article)
