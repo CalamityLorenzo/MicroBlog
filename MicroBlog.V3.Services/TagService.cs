@@ -1,11 +1,12 @@
-﻿using MicroBlog.V3.Interfaces;
+﻿using AzureStorage.V2.Helpers.Context;
+using MicroBlog.V3.Interfaces;
 using MicroBlog.V3.Services.Context;
 using MicroBlog.V3.Services.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using static MicroBlog.V3.Services.Context.CloudStorageContext;
+using static AzureStorage.V2.Helpers.Context.CloudStorageContext;
 using static MicroBlog.V3.Services.Context.MicroBlogConfiguration;
 
 namespace MicroBlog.V3.Services
@@ -23,9 +24,9 @@ namespace MicroBlog.V3.Services
             this.cscCtx = cscCtx;
         }
 
-        public Task<IArticleTags> Create(IEnumerable<string>tags, Guid Id)
+        public Task<IArticleTags> Create(IEnumerable<string> tags, Guid Id)
         {
-            return this.Create(new ArticleTags(tags, Id));
+            return Create(new ArticleTags(tags, Id));
         }
 
         public async Task<IArticleTags> Create(IArticleTags Entity)
@@ -38,13 +39,13 @@ namespace MicroBlog.V3.Services
 
         public async Task Delete(IArticleTags Entity)
         {
-            await this.Delete(Entity.Id);
+            await Delete(Entity.Id);
         }
 
         public async Task Delete(Guid EntityId)
         {
             var stringId = EntityId.ToString();
-            var tag =  await tagTable.GetEntity<ArticleTags>(stringId, stringId);
+            var tag = await tagTable.GetEntity<ArticleTags>(stringId, stringId);
             await tagTable.DeleteEntity(tag);
             // update statistics.
             await tagQueue.InsertIntoQueue(JsonConvert.SerializeObject(new QueueMessage { ArticleId = EntityId, Status = QueueMessageStatus.Deleted }));
@@ -54,13 +55,15 @@ namespace MicroBlog.V3.Services
         {
             var stringId = EntityId.ToString();
             var tags = await tagTable.GetEntity<ArticleTags>(stringId, stringId);
-            return (tags == null)? new ArticleTags(EntityId): tags;
+            return (tags == null) ? new ArticleTags(EntityId) : tags;
         }
 
         public async Task<IArticleTags> Update(IArticleTags Entity)
         {
             var inserted = new ArticleTags(Entity);
             await tagTable.ReplaceEntity(inserted);
+            await tagQueue.InsertIntoQueue(JsonConvert.SerializeObject(new QueueMessage { ArticleId = Entity.Id, Status = QueueMessageStatus.Updated }));
+
             return inserted;
         }
 

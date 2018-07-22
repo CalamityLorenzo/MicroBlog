@@ -5,10 +5,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Context\MicroBlogCloudContext-Private.cs" />
+    <Compile Remove="Context\MicroBlogContext-Public.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="WindowsAzure.Storage" Version="9.3.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AzureStorage.V2.Helpers\AzureStorage.V2.Helpers.csproj" />
     <ProjectReference Include="..\MicroBlog.V3\MicroBlog.V3.Interfaces.csproj" />
   </ItemGroup>
 

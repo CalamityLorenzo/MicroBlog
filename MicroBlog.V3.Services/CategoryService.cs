@@ -1,4 +1,5 @@
-﻿using MicroBlog.V3.Interfaces;
+﻿using AzureStorage.V2.Helpers.Context;
+using MicroBlog.V3.Interfaces;
 using MicroBlog.V3.Services.Context;
 using MicroBlog.V3.Services.Models;
 using Newtonsoft.Json;
@@ -6,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using static MicroBlog.V3.Services.Context.CloudStorageContext;
+using static AzureStorage.V2.Helpers.Context.CloudStorageContext;
 using static MicroBlog.V3.Services.Context.MicroBlogConfiguration;
 
 namespace MicroBlog.V3.Services

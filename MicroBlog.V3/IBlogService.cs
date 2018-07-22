@@ -7,5 +7,6 @@ namespace MicroBlog.V3.Interfaces
 {
     public interface IBlogService : IBasicRepo<IClientArticle> {
         Task<IClientArticle> GetByUrl(string url);
+        Task<IEnumerable<IArticleDetails>> FindAllDetails(DateTime start, DateTime end, int take, int skip);
     }
 }

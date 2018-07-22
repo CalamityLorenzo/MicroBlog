@@ -1,12 +1,14 @@
-﻿using MicroBlog.V3.Interfaces;
+﻿using AzureStorage.V2.Helpers.Context;
+using MicroBlog.V3.Interfaces;
 using MicroBlog.V3.Services.Context;
 using MicroBlog.V3.Services.Models;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static MicroBlog.V3.Services.Context.CloudStorageContext;
+using static AzureStorage.V2.Helpers.Context.CloudStorageContext;
 using static MicroBlog.V3.Services.Context.MicroBlogConfiguration;
 
 namespace MicroBlog.V3.Services
@@ -20,7 +22,7 @@ namespace MicroBlog.V3.Services
 
         internal BlogService(CloudStorageContext cscCtx, Options opts)
         {
-            articleBlobStorage = cscCtx.CreateBloblHelper(opts.ArticleBlob);
+            articleBlobStorage = cscCtx.CreateBlobHelper(opts.ArticleBlob);
             articleDetailsStorage = cscCtx.CreateTableHelper(opts.ArticleDetails);
             this.cscCtx = cscCtx;
         }
@@ -32,7 +34,7 @@ namespace MicroBlog.V3.Services
             if (results.Count > 0)
             {
                 var details = results.First();
-                var jsonBlob = await articleBlobStorage.GetJsonFile($"{details.Id}.json");
+                var jsonBlob = await articleBlobStorage.GetJsonBlob($"{details.Id}.json");
                 var article = JsonConvert.DeserializeObject<ArticleFileData>(jsonBlob);
                 return new CompleteArticle(article, details);
 
@@ -80,7 +82,7 @@ namespace MicroBlog.V3.Services
 
         public async Task<IClientArticle> Get(Guid Id)
         {
-            var jsonBlob = await articleBlobStorage.GetJsonFile($"{Id}.json");
+            var jsonBlob = await articleBlobStorage.GetJsonBlob($"{Id}.json");
             var article = JsonConvert.DeserializeObject<ArticleFileData>(jsonBlob);
             var details = await this.articleDetailsStorage.GetEntity<ArticleDetails>(Id.ToString(), ArticleDetails.RowKeyDef);
             return new CompleteArticle(article, details);
@@ -108,6 +110,12 @@ namespace MicroBlog.V3.Services
             return await this.InsertArticle(article, article.Id);
 
         }
+
+        public async Task<IEnumerable<IArticleDetails>> FindAllDetails(DateTime start, DateTime end, int take, int skip)
+        {
+            return null;
+        }
+
 
         public static IBlogService GetManager()
         {

@@ -14,9 +14,9 @@ using MicroBlog.V3.Functions.Settings;
 
 namespace MicroBlog.V3.Functions
 {
-    public static class CreateBlogEntry
+    public static class InsertBlogEntry
     {
-        [FunctionName("CreateBlogEntry")]
+        [FunctionName("InsertBlogEntry")]
         public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Admin, "post", Route = null)]HttpRequest req, TraceWriter log, ExecutionContext context)
         {
             log.Info("CreateBlogEntry processed a request.");
