@@ -28,7 +28,7 @@ namespace MicroBlog.V3.Functions.Functions
             List<IArticleDetails> results = new List<IArticleDetails>();
 
             var bs = BlogService.GetManager();
-            results.AddRange(await bs.FindAllDetails(headersQuery.Start, headersQuery.End, headersQuery.Take, headersQuery.Skip));
+            results.AddRange(await bs.FindArticlDetails(headersQuery.Start, headersQuery.End, headersQuery.Take, headersQuery.Skip));
 
             return new OkObjectResult(results);
         }

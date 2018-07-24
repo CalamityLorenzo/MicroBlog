@@ -111,11 +111,11 @@ namespace MicroBlog.V3.Services
 
         }
 
-        public async Task<IEnumerable<IArticleDetails>> FindAllDetails(DateTime start, DateTime end, int take, int skip)
+        public async Task<IEnumerable<IArticleDetails>> FindArticlDetails(DateTime start, DateTime end, int take, int skip)
         {
-            return null;
+            var qry = $"(Published ge datetime'{start.Date}') and(Published le datetime'{end.Date}')";
+            return await articleDetailsStorage.EntityQuery<ArticleDetails>(qry, take, skip);
         }
-
 
         public static IBlogService GetManager()
         {

@@ -6,6 +6,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AzureStorage.V2.Helpers.Context
@@ -159,6 +160,14 @@ namespace AzureStorage.V2.Helpers.Context
                 await table.ExecuteAsync(addItem);
             }
 
+            // same partionKey applies
+            public async Task InsertBulkToTable(IEnumerable<ITableEntity> entity)
+            {
+                var table = await cscCtx.GetTable(TableName, true);
+                var batchOp = new TableBatchOperation();
+
+            }
+
             public async Task DeleteEntity(ITableEntity entity)
             {
                 var table = await cscCtx.GetTable(TableName, true);
@@ -200,20 +209,18 @@ namespace AzureStorage.V2.Helpers.Context
             {
                 var table = await cscCtx.GetTable(TableName);
                 var tQuery = new TableQuery<TEntity>() { FilterString = qryString, SelectColumns = columns };
+                
                 var token = new TableContinuationToken();
                 var returnResults = new List<TEntity>();
-                var totalSkipped = 0;
-
                 do
                 {
                     var qryRes = await table.ExecuteQuerySegmentedAsync<TEntity>(tQuery, token);
                     token = qryRes.ContinuationToken;
-                    if (totalSkipped == Skip)
-                    {
-                        returnResults.AddRange(qryRes.Results);
-                    }
-                } while (token != null);
-                return returnResults;
+                    returnResults.AddRange(qryRes.Results);
+
+                } while (token != null && returnResults.Count <= Take+Skip);
+                // Cheap
+                return returnResults.Skip(Skip).Take(Take);
             }
 
         }
