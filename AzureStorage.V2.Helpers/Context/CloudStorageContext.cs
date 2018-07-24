@@ -3,6 +3,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.File;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Table;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -38,7 +39,6 @@ namespace AzureStorage.V2.Helpers.Context
         {
             return new SimpleBlobHelper(this, tableName);
         }
-
 
         public CloudStorageContext(string storageAccount)
         {
@@ -175,7 +175,6 @@ namespace AzureStorage.V2.Helpers.Context
                 await table.ExecuteAsync(addItem);
             }
 
-
             public async Task ReplaceEntity(ITableEntity entity)
             {
                 var table = await cscCtx.GetTable(TableName, true);
@@ -205,11 +204,16 @@ namespace AzureStorage.V2.Helpers.Context
                 return returnResults;
             }
 
-            public async Task<IEnumerable<TEntity>> EntityQuery<TEntity>(string qryString, int Take, int Skip, params string[] columns) where TEntity : ITableEntity, new()
+            public Task<IEnumerable<TEntity>> EntityQuery<TEntity>(string qryString, int Take, int Skip, params string[] columns) where TEntity : ITableEntity, new()
+            {
+                return this.EntityQuery<TEntity>(qryString, Take, Skip, null, columns);
+            }
+
+            public async Task<IEnumerable<TEntity>> EntityQuery<TEntity>(string qryString, int Take, int Skip, Func<IComparer<TEntity>> Sort, params string[] columns) where TEntity : ITableEntity, new()
             {
                 var table = await cscCtx.GetTable(TableName);
                 var tQuery = new TableQuery<TEntity>() { FilterString = qryString, SelectColumns = columns };
-                
+
                 var token = new TableContinuationToken();
                 var returnResults = new List<TEntity>();
                 do
@@ -218,8 +222,13 @@ namespace AzureStorage.V2.Helpers.Context
                     token = qryRes.ContinuationToken;
                     returnResults.AddRange(qryRes.Results);
 
-                } while (token != null && returnResults.Count <= Take+Skip);
+                } while (token != null && returnResults.Count <= Take + Skip);
                 // Cheap
+                if (Sort != null)
+                {
+                    returnResults.Sort(Sort());
+                }
+
                 return returnResults.Skip(Skip).Take(Take);
             }
 

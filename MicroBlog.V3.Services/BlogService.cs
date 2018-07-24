@@ -16,7 +16,6 @@ namespace MicroBlog.V3.Services
     public class BlogService : IBlogService
     {
         private CloudStorageContext cscCtx;
-
         private SimpleBlobHelper articleBlobStorage;
         private SimpleTableHelper articleDetailsStorage;
 
