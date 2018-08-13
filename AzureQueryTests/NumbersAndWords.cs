@@ -7,9 +7,12 @@ namespace AzureQueryTests
     internal class NumbersAndWords : TableEntity
     {
         public NumbersAndWords() { }
-        public NumbersAndWords(int Number, string NumberAsWords) : base(Number.ToString(), NumberAsWords) { }
+        public NumbersAndWords(int Number, string NumberAsWords) : base("numbers"   , String.Format("{0:D19}", DateTime.MaxValue.Ticks - DateTime.Now.Ticks))
+        {
+            this.NumberAsWords = NumberAsWords;
+        }
         public int Number => int.TryParse(PartitionKey, out var val) ? val : 0;
-        public string NumberAsWords => RowKey;
+        public string NumberAsWords { get; set; }
         public DateTime Published { get; set; }
 
         public override string ToString()
@@ -17,9 +20,9 @@ namespace AzureQueryTests
             return $"{Number} {Published}";
         }
     }
+
     public static class NumToWor
     {
-
         public static string NumbersToWords(int num)
         {
             StringBuilder words = new StringBuilder();
@@ -70,7 +73,5 @@ namespace AzureQueryTests
 
             return words.ToString();
         }
-
-
     }
 }

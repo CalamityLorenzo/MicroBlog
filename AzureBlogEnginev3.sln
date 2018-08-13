@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroBlog.V3.Functions", "M
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureStorage.V2.Helpers", "AzureStorage.V2.Helpers\AzureStorage.V2.Helpers.csproj", "{3ADC1BBF-9280-45DE-97C2-57F20AEF6C76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureQueryTests", "AzureQueryTests\AzureQueryTests.csproj", "{435B3A81-17AA-4DBD-A220-1C0B9C0C038A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureQueryTests", "AzureQueryTests\AzureQueryTests.csproj", "{435B3A81-17AA-4DBD-A220-1C0B9C0C038A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +53,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{407CCE80-EF3B-44D9-A1B9-17879E561B32} = {92FDB99A-6FD9-4ACF-89AE-D9758AA8925B}
+		{435B3A81-17AA-4DBD-A220-1C0B9C0C038A} = {92FDB99A-6FD9-4ACF-89AE-D9758AA8925B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9037ED5E-2610-43AA-BA90-2B34BF6E1D2B}

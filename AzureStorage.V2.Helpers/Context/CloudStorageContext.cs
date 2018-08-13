@@ -161,10 +161,31 @@ namespace AzureStorage.V2.Helpers.Context
             }
 
             // same partionKey applies
-            public async Task InsertBulkToTable(IEnumerable<ITableEntity> entity)
+            public async Task InsertBulkToTable(IEnumerable<ITableEntity> entities)
             {
                 var table = await cscCtx.GetTable(TableName, true);
-                var batchOp = new TableBatchOperation();
+
+                // Shove them all in nom nom nom
+                var manageableRecords = entities.ToList().SplitList(100);
+
+                // Now make create the Table operation
+
+                List<TableBatchOperation> tableOps = new List<TableBatchOperation>();
+
+                var counter = 0;
+                foreach(var bagOThings in manageableRecords)
+                {
+                    var Insert = new TableBatchOperation();
+                    bagOThings.ForEach(o => { o.PartitionKey = o.PartitionKey + counter.ToString().PadLeft(5, '0'); Insert.Insert(o); });
+                    tableOps.Add(Insert);
+                    counter += 1;
+                }
+
+                // var tasks =  manageableBatch.Select(table.ExecuteBatchAsync).ToList();
+                var tasks = tableOps.Select(table.ExecuteBatchAsync);
+                //Task.WaitAll(tasks.ToArray());
+
+                await Task.WhenAll(tasks);
 
             }
 
