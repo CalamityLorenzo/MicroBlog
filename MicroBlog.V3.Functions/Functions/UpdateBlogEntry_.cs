@@ -21,7 +21,7 @@ namespace MicroBlog.V3.Functions
             // Deconstruct
             (Interfaces.IClientArticle article, Interfaces.IArticleTags tags, Interfaces.IArticleCategories categories) = updatedArticle;
 
-            Interfaces.IBlogService bs = BlogService.GetManager();
+            Interfaces.IArticleService bs = ArticleService.GetManager();
             Interfaces.ITagService ts = TagService.GetManager();
             Interfaces.ICategoryService cs = CategoryService.GetManager();
             Task[] tasks = new Task[] {

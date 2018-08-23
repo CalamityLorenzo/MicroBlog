@@ -16,7 +16,7 @@ namespace MicroBlog.V3.Functions.Models.App
 
 
         public ArticleTags() { }
-        public ArticleTags(ICompleteArticle article)
+        public ArticleTags(ICompletePost article)
         {
             Id = article.Id;
             Tags = article.Tags;

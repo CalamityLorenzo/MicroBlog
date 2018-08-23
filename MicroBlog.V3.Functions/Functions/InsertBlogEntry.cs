@@ -25,7 +25,7 @@ namespace MicroBlog.V3.Functions
             // Deconstruct
             (var article, var tags, var categories) = completeArticle;
 
-            var blogService = BlogService.GetManager();
+            var blogService = ArticleService.GetManager();
             var tagService = TagService.GetManager();
             var categoryService = CategoryService.GetManager();
             var newEntry = await blogService.Create(article);

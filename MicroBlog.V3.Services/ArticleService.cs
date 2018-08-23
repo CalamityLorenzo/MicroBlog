@@ -13,13 +13,13 @@ using static MicroBlog.V3.Services.Context.MicroBlogConfiguration;
 
 namespace MicroBlog.V3.Services
 {
-    public class BlogService : IBlogService
+    public class ArticleService : IArticleService
     {
         private CloudStorageContext cscCtx;
         private SimpleBlobHelper articleBlobStorage;
         private SimpleTableHelper articleDetailsStorage;
 
-        internal BlogService(CloudStorageContext cscCtx, Options opts)
+        internal ArticleService(CloudStorageContext cscCtx, Options opts)
         {
             articleBlobStorage = cscCtx.CreateBlobHelper(opts.ArticleBlob);
             articleDetailsStorage = cscCtx.CreateTableHelper(opts.ArticleDetails);
@@ -116,10 +116,10 @@ namespace MicroBlog.V3.Services
             return await articleDetailsStorage.EntityQuery<ArticleDetails>(qry, take, skip);
         }
 
-        public static IBlogService GetManager()
+        public static IArticleService GetManager()
         {
             var opts = MicroBlogConfiguration.GetOptions();
-            return new BlogService(new CloudStorageContext(opts.StorageAccount), opts );
+            return new ArticleService(new CloudStorageContext(opts.StorageAccount), opts );
         }
     }
 }

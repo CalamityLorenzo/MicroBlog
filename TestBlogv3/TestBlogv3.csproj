@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MicroBlog.V3.Services\MicroBlog.V3.Services.csproj" />
-    <ProjectReference Include="..\MicroBlog.V3\MicroBlog.V3.Interfaces.csproj" />
+    <ProjectReference Include="..\MicroBlog.V3\MicroBlog.V3.Entities.csproj" />
   </ItemGroup>
 
   <ItemGroup>

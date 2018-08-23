@@ -25,7 +25,7 @@ namespace MicroBlog.V3.Functions.Functions
 
             var headersQuery = AppConfigSettings.IngestRequest<GetArticleHeadersInput>(req, context);
             List<IArticleDetails> results = new List<IArticleDetails>();
-            var bs = BlogService.GetManager();
+            var bs = ArticleService.GetManager();
             results.AddRange(await bs.FindArticlDetails(headersQuery.Start, headersQuery.End, headersQuery.Take, headersQuery.Skip));
             return new OkObjectResult(results);
         }

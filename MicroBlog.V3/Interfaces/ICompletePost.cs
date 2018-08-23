@@ -5,7 +5,7 @@ namespace MicroBlog.V3.Interfaces
 {
     // THis is what the front end sees
     // this get's decomposed to the relevant components.
-    public interface ICompleteArticle
+    public interface ICompletePost
     {
         Guid Id { get; }
         string Url { get; }

@@ -14,7 +14,7 @@ namespace MicroBlog.V3.Functions.Models.App
             this.Id = Id;
             Tags = categories;
         }
-        public ArticleCategories(ICompleteArticle article)
+        public ArticleCategories(ICompletePost article)
         {
             Id = article.Id;
             Tags = new List<string>(article.Tags);

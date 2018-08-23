@@ -6,7 +6,7 @@ namespace MicroBlog.V3.Functions.Models.App
     internal class BaseArticle : IClientArticle
 
     {
-        public BaseArticle(ICompleteArticle totalEntry)
+        public BaseArticle(ICompletePost totalEntry)
         {
             this.Id = totalEntry.Id;
             this.Url = totalEntry.Url;

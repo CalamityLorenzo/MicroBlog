@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MicroBlog.V3.Functions.Models.App
 {
-    class CompleteClientArticle : ICompleteArticle
+    class CompleteClientArticle : ICompletePost
     {
         public CompleteClientArticle(){}
 

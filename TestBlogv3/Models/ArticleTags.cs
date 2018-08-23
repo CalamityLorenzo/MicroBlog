@@ -16,7 +16,7 @@ namespace TestBlogv3.Models
 
 
         public ArticleTags() { }
-        public ArticleTags(ICompleteArticle article)
+        public ArticleTags(ICompletePost article)
         {
             Id = article.Id;
             Tags = article.Tags;

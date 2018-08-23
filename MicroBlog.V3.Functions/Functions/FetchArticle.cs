@@ -25,7 +25,7 @@ namespace MicroBlog.V3.Functions
             var articleInput = AppConfigSettings.IngestRequest<CompleteClientArticle>(req, context);
 
             // You can either retrieve an article by Id or it's relative Url
-            var blogService = BlogService.GetManager();
+            var blogService = ArticleService.GetManager();
             var tagService = TagService.GetManager();
             var categoryService = CategoryService.GetManager();
 
