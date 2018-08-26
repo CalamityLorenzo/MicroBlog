@@ -24,7 +24,7 @@ namespace MicroBlog.V3.Functions.Settings
         {
             Dictionary<string, string> options = GetSettings(rootFolder);
             MicroBlogConfiguration.SetConfiguration(() =>
-                    new MicroBlogConfiguration.Options(
+                    new MicroBlogConfiguration.MicroBlogOptions(
                                 options["Values:AzureWebJobsStorage"],
                                 options["Values:ArticleBlob"],
                                 options["Values:ArticleDetails"],

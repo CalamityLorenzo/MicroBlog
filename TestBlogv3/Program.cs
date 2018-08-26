@@ -1,6 +1,8 @@
-﻿using MicroBlog.V3.Services;
+﻿using AzureStorage.V2.Helpers.Context;
+using MicroBlog.V3.Services;
 using MicroBlog.V3.Services.Context;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,29 +20,28 @@ namespace TestBlogv3
                          .AddJsonFile("config.json", false, true);
             IConfigurationRoot config = build.Build();
             IConfigurationSection appKeys = config.GetSection("appSettings");
-            DoThings(appKeys).Wait();
+            ILoggerFactory loggerFactory = new LoggerFactory()
+                                        .AddConsole(LogLevel.Trace)
+                                        .AddDebug();
+            ILogger logger = loggerFactory.CreateLogger<Program>();
+
+            DoThings(appKeys, logger).Wait();
         }
 
-        private static async Task DoThings(IConfigurationSection appKeys)
+        private static async Task DoThings(IConfigurationSection appKeys, ILogger logger)
         {
-            MicroBlogConfiguration.SetConfiguration(() => new MicroBlogConfiguration.Options(appKeys["StorageAcc"], appKeys["NewArticleStore"], appKeys["NewArticleDetails"], appKeys["TagProcessing"], appKeys["TagStore"], appKeys["catQueue"], appKeys["catStore"]));
-
-            // In a whorld where this is a functionapp.
-            // we pass this entire BlogPost into  function
+            MicroBlogConfiguration.SetConfiguration(() => new MicroBlogConfiguration.MicroBlogOptions(appKeys["StorageAcc"], appKeys["NewArticleStore"], appKeys["NewArticleDetails"], appKeys["TagProcessing"], appKeys["TagStore"], appKeys["catQueue"], appKeys["catStore"]));
             var blogOh1 = new CompleteBlogEntry("https", "string bling", "synthOio", "article", "Pal lawrence", new List<string> { "Salad", "Fortune", "Cava" }, new List<string> { "Science", "MAths", "Boojagger" }, DateTime.Now, DateTime.Today.AddDays(-100));
 
             // In the function, we deconstruct the original message
-            (var article, var tags, var categories) = blogOh1;
-            var bs = ArticleService.GetManager();
-            var ts = TagService.GetManager();
-            // INsert and create a new Blog Article
-            var entity = await bs.Create(article);
-            // Ditto the tsg, and categories
+            var allOpts = MicroBlogConfiguration.GetOptions();
+            var cloudAcct = new CloudStorageContext(allOpts.StorageAccount);
 
-            var createdTags = await ts.Create(tags.Tags.ToList(), entity.Id);
-            var results = new CompleteBlogEntry(await bs.Get(entity.Id), createdTags,
-                                    new ArticleCategories(categories.Tags, entity.Id));
-            Console.WriteLine(results);
+
+
+            // In a whorld where this is a functionapp.
+            // we pass this entire BlogPost into  function
+            BlogArticleService bas = new BlogArticleService(cloudAcct, allOpts, logger);
         }
     }
 }

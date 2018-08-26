@@ -22,7 +22,7 @@ namespace AzureQueryTests
         private static async Task DoWuery()
         {
             var ctx = new CloudStorageContext("UseDevelopmentStorage=true");
-            var numWords = ctx.CreateTableHelper("xpclNumWords");
+            var numWords = await ctx.CreateTableHelper("xpclNumWords");
             var startDate = DateTime.Today.AddDays(10);
             var endDate = startDate.AddDays(100);
             var qry = SpreadQry(startDate, endDate);
@@ -64,11 +64,11 @@ namespace AzureQueryTests
             }
 
             var ctx = new CloudStorageContext("UseDevelopmentStorage=true");
-            var numWords = ctx.CreateTableHelper("xpclNumWords");
-            await numWords.InsertBulkToTable(WordNumThings);
+            var numWords = await ctx.CreateTableHelper("xpclNumWords");
+            await numWords.Insert(WordNumThings);
         }
 
-        private static void CreateWordNumTHing(int limit)
+        private static async Task CreateWordNumTHing(int limit)
         {
             var currentDate = DateTime.Today;
             var wordNumbTHing = new List<NumbersAndWords>();
@@ -84,10 +84,10 @@ namespace AzureQueryTests
             }
 
             var ctx = new CloudStorageContext("UseDevelopmentStorage=true");
-            var numWords = ctx.CreateTableHelper("xpclNumWords");
+            var numWords = await ctx.CreateTableHelper("xpclNumWords");
             var tasks = new List<Task>();
 
-            wordNumbTHing.ForEach(a => tasks.Add(numWords.InsertToTable(a)));
+            wordNumbTHing.ForEach(a => tasks.Add(numWords.Insert(a)));
             var task1 = tasks.Skip(0).Take(1000).ToList();
             var task2 = tasks.Skip(1000).Take(1000);
             var task3 = tasks.Skip(2000).Take(1000);

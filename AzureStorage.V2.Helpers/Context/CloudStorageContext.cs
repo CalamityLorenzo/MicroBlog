@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAzure.Storage;
+﻿using AzureStorage.V2.Helpers.SimpleStorage;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.File;
 using Microsoft.WindowsAzure.Storage.Queue;
@@ -25,17 +26,17 @@ namespace AzureStorage.V2.Helpers.Context
         private readonly ConcurrentDictionary<string, CloudTable> Tables = new ConcurrentDictionary<string, CloudTable>();
         private readonly ConcurrentDictionary<string, CloudFileShare> FileShares = new ConcurrentDictionary<string, CloudFileShare>();
 
-        public SimpleQueueHelper CreateQueueHelper(string tagQueueName)
+        public async Task<SimpleQueueHelper> CreateQueueHelper(string tagQueueName)
         {
             return new SimpleQueueHelper(this, tagQueueName);
         }
 
-        public SimpleTableHelper CreateTableHelper(string tableName)
+        public async Task<SimpleTableHelper> CreateTableHelper(string tableName)
         {
-            return new SimpleTableHelper(this, tableName);
+            return new SimpleTableHelper(await this.GetTable(tableName));
         }
 
-        public SimpleBlobHelper CreateBlobHelper(string tableName)
+        public async Task<SimpleBlobHelper> CreateBlobHelper(string tableName)
         {
             return new SimpleBlobHelper(this, tableName);
         }
@@ -96,7 +97,8 @@ namespace AzureStorage.V2.Helpers.Context
             await fs.CreateIfNotExistsAsync();
             return fs;
         }
-
+     
+        #region simpleHelpers
         public class SimpleBlobHelper
         {
             private CloudStorageContext CsCtx { get; }
@@ -143,122 +145,10 @@ namespace AzureStorage.V2.Helpers.Context
 
         }
 
-        public class SimpleTableHelper
-        {
-            public CloudStorageContext cscCtx;
-            public string TableName;
-            public SimpleTableHelper(CloudStorageContext csc, string tableName)
-            {
-                cscCtx = csc;
-                TableName = tableName;
-            }
-
-            public async Task InsertToTable(ITableEntity entity)
-            {
-                var table = await cscCtx.GetTable(TableName, true);
-                var addItem = TableOperation.Insert(entity);
-                await table.ExecuteAsync(addItem);
-            }
-
-            // same partionKey applies
-            public async Task InsertBulkToTable(IEnumerable<ITableEntity> entities)
-            {
-                var table = await cscCtx.GetTable(TableName, true);
-
-                // Shove them all in nom nom nom
-                var manageableRecords = entities.ToList().SplitList(100);
-
-                // Now make create the Table operation
-
-                List<TableBatchOperation> tableOps = new List<TableBatchOperation>();
-
-                var counter = 0;
-                foreach(var bagOThings in manageableRecords)
-                {
-                    var Insert = new TableBatchOperation();
-                    bagOThings.ForEach(o => { o.PartitionKey = o.PartitionKey + counter.ToString().PadLeft(5, '0'); Insert.Insert(o); });
-                    tableOps.Add(Insert);
-                    counter += 1;
-                }
-
-                // var tasks =  manageableBatch.Select(table.ExecuteBatchAsync).ToList();
-                var tasks = tableOps.Select(table.ExecuteBatchAsync);
-                //Task.WaitAll(tasks.ToArray());
-
-                await Task.WhenAll(tasks);
-
-            }
-
-            public async Task DeleteEntity(ITableEntity entity)
-            {
-                var table = await cscCtx.GetTable(TableName, true);
-                var addItem = TableOperation.Delete(entity);
-                await table.ExecuteAsync(addItem);
-            }
-
-            public async Task ReplaceEntity(ITableEntity entity)
-            {
-                var table = await cscCtx.GetTable(TableName, true);
-                var replaceItem = TableOperation.Replace(entity);
-                await table.ExecuteAsync(replaceItem);
-            }
-
-            public async Task<T> GetEntity<T>(string partitionKey, string rowKey) where T : class, ITableEntity, new()
-            {
-                var table = await cscCtx.GetTable(TableName, true);
-                var entity = await table.ExecuteAsync(TableOperation.Retrieve<T>(partitionKey, rowKey));
-                return entity.Result as T;
-            }
-
-            public async Task<IEnumerable<TEntity>> EntityQuery<TEntity>(string qryString, params string[] columns) where TEntity : ITableEntity, new()
-            {
-                var table = await cscCtx.GetTable(TableName);
-                var tQuery = new TableQuery<TEntity>() { FilterString = qryString, SelectColumns = columns };
-                var token = new TableContinuationToken();
-                var returnResults = new List<TEntity>();
-                do
-                {
-                    var qryRes = await table.ExecuteQuerySegmentedAsync<TEntity>(tQuery, token);
-                    token = qryRes.ContinuationToken;
-                    returnResults.AddRange(qryRes.Results);
-                } while (token != null);
-                return returnResults;
-            }
-
-            public Task<IEnumerable<TEntity>> EntityQuery<TEntity>(string qryString, int Take, int Skip, params string[] columns) where TEntity : ITableEntity, new()
-            {
-                return this.EntityQuery<TEntity>(qryString, Take, Skip, null, columns);
-            }
-
-            public async Task<IEnumerable<TEntity>> EntityQuery<TEntity>(string qryString, int Take, int Skip, Func<IComparer<TEntity>> Sort, params string[] columns) where TEntity : ITableEntity, new()
-            {
-                var table = await cscCtx.GetTable(TableName);
-                var tQuery = new TableQuery<TEntity>() { FilterString = qryString, SelectColumns = columns };
-
-                var token = new TableContinuationToken();
-                var returnResults = new List<TEntity>();
-                do
-                {
-                    var qryRes = await table.ExecuteQuerySegmentedAsync<TEntity>(tQuery, token);
-                    token = qryRes.ContinuationToken;
-                    returnResults.AddRange(qryRes.Results);
-
-                } while (token != null && returnResults.Count <= Take + Skip);
-                // Cheap
-                if (Sort != null)
-                {
-                    returnResults.Sort(Sort());
-                }
-
-                return returnResults.Skip(Skip).Take(Take);
-            }
-
-        }
-
         public class SimpleQueueHelper
         {
             private CloudStorageContext cscCtx;
-            private string QueueName;
+            private readonly string QueueName;
             public SimpleQueueHelper(CloudStorageContext csc, string queueName)
             {
                 cscCtx = csc;
@@ -271,5 +161,6 @@ namespace AzureStorage.V2.Helpers.Context
                 await queue.AddMessageAsync(new CloudQueueMessage(serialisedMessage));
             }
         }
+        #endregion
     }
 }
