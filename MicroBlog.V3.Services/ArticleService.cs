@@ -38,10 +38,8 @@ namespace MicroBlog.V3.Services
         public async Task<IClientArticle> GetByUrl(string url)
         {
             var articleDetails = await articleDetailsStorage.Value;
-
-
             var qry = TableQuery.GenerateFilterCondition("Url", QueryComparisons.Equal, url);
-            var urlKey = (await articleDetails.Query<ArticleDetailsUrlId>(qry,1)).ToList();
+            var urlKey = (await articleDetails.Query<ArticleDetailsUrlId>(qry, 1)).ToList();
             if (urlKey.Count > 0)
             {
                 var urlData = urlKey.First();
@@ -70,12 +68,12 @@ namespace MicroBlog.V3.Services
                 {
                     logger.LogDebug(ex.Message + " " + ex.StackTrace);
                 }
-                return null;
+                throw; 
             }
             catch (Exception ex)
             {
                 logger.LogDebug(ex.Message + " " + ex.StackTrace);
-                return null;
+                throw;
             }
         }
 
@@ -86,9 +84,9 @@ namespace MicroBlog.V3.Services
             // Then store the info in table
             var articleDetails = new ArticleDetails(article, Id);
             var articleBlobString = JsonConvert.SerializeObject(articleData);
+
             var articleDetailsTable = await articleDetailsStorage.Value;
             var articleBlobStore = await articleBlobStorage.Value;
-
             await articleDetailsTable.Insert(articleDetails);
             await articleDetailsTable.Insert(new ArticleDetailsUrlId(articleDetails.Url, articleDetails.Id));
             await articleBlobStore.AddNewJsonFile(articleBlobString, $"{Id}.json");
@@ -116,7 +114,7 @@ namespace MicroBlog.V3.Services
         {
             var articleTables = await this.articleDetailsStorage.Value;
             var articleBlobStore = await this.articleBlobStorage.Value;
-            var details = await articleTables.Query<ArticleDetails>(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, Id.ToString()),1);
+            var details = await articleTables.Query<ArticleDetails>(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, Id.ToString()), 1);
             var articleDetails = details.FirstOrDefault();
             var urlKey = await articleTables.Get<ArticleDetailsUrlId>(articleDetails.Url, articleDetails.Id.ToString());
             // TODO: Schism this into one takss
@@ -127,22 +125,35 @@ namespace MicroBlog.V3.Services
 
         public async Task<IClientArticle> Update(IClientArticle article)
         {
-
-            // confirm we have not changed the url
-            var articleTables = await this.articleDetailsStorage.Value;
-            var articleKeys = articleTables.Get<ArticleDetailsUrlId>(article.Url, article.Id.ToString());
-            // we have not changed the url
-            if (articleKeys != null)
+            try
             {
-                await articleTables.Replace(new ArticleDetails(article));
-                return article;
+                this.logger.LogTrace($"Updating article {article.Id}");
+                // confirm we have not changed the url
+                var articleTables = await this.articleDetailsStorage.Value;
+                var articleKeys = articleTables.Get<ArticleDetailsUrlId>(article.Url, article.Id.ToString());
+                // we have not changed the url
+                if (articleKeys != null)
+                {
+                    this.logger.LogTrace($"Keys are the same {article.Id}");
+                    await articleTables.Replace(new ArticleDetails(article) { ETag = "*" });
+                    return article;
+                }
+                else
+                {
+                    // we have changed the url (Which is part of the key)
+                    // so we have to recreate the whole thing
+                    this.logger.LogTrace($"Replaced keys recreating article{article.Id}");
+                    await this.Delete(article.Id);
+                    return await this.InsertArticle(article, article.Id);
+                }
             }
-            else
+            catch (AggregateException ex)
             {
-                // we have changed the url (Which is part of the key)
-                // so we have to recreate the whole thing
-                await this.Delete(article.Id);
-                return await this.InsertArticle(article, article.Id);
+                foreach (var e in ex.Flatten().InnerExceptions)
+                {
+                    logger.LogError(ex.Message);
+                }
+                throw;
             }
         }
 

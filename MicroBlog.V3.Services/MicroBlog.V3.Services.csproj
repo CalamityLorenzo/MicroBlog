@@ -20,4 +20,8 @@
     <ProjectReference Include="..\MicroBlog.V3\MicroBlog.V3.Entities.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Application.Services\" />
+  </ItemGroup>
+
 </Project>

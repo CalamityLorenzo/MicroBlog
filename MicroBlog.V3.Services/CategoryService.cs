@@ -68,16 +68,29 @@ namespace MicroBlog.V3.Services
             
             var stringId = EntityId.ToString();
             var cats = await tagTable.Get<ArticleCategories>(stringId, stringId);
-            return cats ?? new ArticleCategories(EntityId);
+            // return null if no categories found
+            return cats != null ? new ArticleCategories(EntityId) : null;
         }
 
         public async Task<IArticleCategories> Update(IArticleCategories Entity)
         {
-            var tagTable = await tagTableStore.Value;
-            var updated = new ArticleCategories(Entity);
-            await tagTable.Replace(updated);
+            // updating here means, checking to see if we actually had any to begin with.
+            // If not then we are actually adding!.
 
-            return updated;
+            var existing  = await this.Get(Entity.Id);
+            var tagTable = await tagTableStore.Value;
+
+            if (existing != null)
+            {
+                var updated = new ArticleCategories(Entity) { ETag = "*" };
+                await tagTable.Replace(updated);
+                return updated;
+            }
+            else
+            {
+                return await this.Create(Entity);
+            }
+
         }
         
     }

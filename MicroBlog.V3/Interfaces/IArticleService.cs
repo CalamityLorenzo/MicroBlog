@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace MicroBlog.V3.Interfaces
 {
-    public interface IArticleService : IBasicRepo<IClientArticle> {
+    public interface IArticleService : IBasicRepository<IClientArticle> {
         Task<IClientArticle> GetByUrl(string url);
         Task<IEnumerable<IArticleDetails>> FindArticlDetails(DateTime start, DateTime end, int take, int skip);
     }

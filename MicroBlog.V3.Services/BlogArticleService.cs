@@ -3,6 +3,7 @@ using MicroBlog.V3.Entities.Models;
 using MicroBlog.V3.Interfaces;
 using MicroBlog.V3.Services.Context;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,34 +32,48 @@ namespace MicroBlog.V3.Services
             (var article, var tags, var categories) = new CompleteBlogEntry(post);
             var articleService = new ArticleService(ctx, opts, logger);
             var tagService = new TagService(ctx, opts, logger);
+            var categoryService = new CategoryService(ctx, opts, logger);
+
             // INsert and create a new Blog Article
             var entity = await articleService.Create(article);
             // Ditto the tsg, and categories
             var createdTags = await tagService.Create(tags.Tags.ToList(), entity.Id);
+            var createdCats = await categoryService.Create(categories.Tags.ToList(), entity.Id);
             var addedEntry = new CompleteBlogEntry(
                                     await articleService.Get(entity.Id),
                                     createdTags,
-                                    new ArticleCategories(categories.Tags, entity.Id));
+                                    createdCats);
             return addedEntry;
         }
 
         public async Task<ICompletePost> Update(ICompletePost post)
         {
-            (var article, var tags, var categories) = new CompleteBlogEntry(post);
-            var articleService = new ArticleService(ctx, opts, logger);
-            var tagService = new TagService(ctx, opts, logger);
-            var categoriesService = new CategoryService(ctx, opts, logger);
-            // INsert and create a new Blog Article
-            var updatedArticle = await articleService.Update(article);
+            try
+            {
+                logger.LogInformation($"Update blog article {post.Id}");
 
-            var updateCategories = await categoriesService.Update(categories);
-            // Ditto the tsg, and categories
-            var updatedTags = await tagService.Update(tags);
-            var updatedEntry = new CompleteBlogEntry(
-                                    updatedArticle,
-                                    updatedTags,
-                                    updateCategories);
-            return updatedEntry;
+                (var article, var tags, var categories) = new CompleteBlogEntry(post);
+
+                var articleService = new ArticleService(ctx, opts, logger);
+                var tagService = new TagService(ctx, opts, logger);
+                var categoriesService = new CategoryService(ctx, opts, logger);
+                
+                // INsert and create a new Blog Article
+                var updatedArticle = await articleService.Update(article);
+                var updateCategories = await categoriesService.Update(categories);
+                // Ditto the tsg, and categories
+                var updatedTags = await tagService.Update(tags);
+                var updatedEntry = new CompleteBlogEntry(
+                                        updatedArticle,
+                                        updatedTags,
+                                        updateCategories);
+                return updatedEntry;
+            }
+            catch(StorageException ex)
+            {
+                logger.LogDebug(ex.Message, ex.StackTrace, "BlogArticleService.Update");
+                throw;
+            }
         }
 
         public async Task<ICompletePost> Get(Guid PostId)

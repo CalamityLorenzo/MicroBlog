@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace MicroBlog.V3.Interfaces
 {
-    public interface IBasicRepo<T>
+    public interface IBasicRepository<T>
     {
         Task<T> Get(Guid EntityId);
         Task<T> Create(T Entity);

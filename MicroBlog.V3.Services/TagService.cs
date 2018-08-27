@@ -5,6 +5,7 @@ using MicroBlog.V3.Interfaces;
 using MicroBlog.V3.Services.Context;
 using MicroBlog.V3.Services.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -32,6 +33,7 @@ namespace MicroBlog.V3.Services
 
         public Task<IArticleTags> Create(IEnumerable<string> tags, Guid Id)
         {
+            logger.LogInformation("Createing Tags TagService.Create");
             return Create(new ArticleTags(tags, Id));
         }
 
@@ -47,7 +49,21 @@ namespace MicroBlog.V3.Services
 
         public async Task Delete(IArticleTags Entity)
         {
-            await Delete(Entity.Id);
+            try
+            {
+                logger.LogInformation("TagService.Delete");
+                await Delete(Entity.Id);
+            }
+            catch (StorageException ex)
+            {
+                logger.LogDebug("TagService.Delete STORAGE EXCEPTION", ex.Message + " " + ex.StackTrace);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug("TagService.Delete", ex.Message + " " + ex.StackTrace);
+                throw;
+            }
         }
 
         public async Task Delete(Guid EntityId)
@@ -63,18 +79,20 @@ namespace MicroBlog.V3.Services
 
         public async Task<IArticleTags> Get(Guid EntityId)
         {
-            var tagTable = await tagTableStore.Value;
+            logger.LogInformation("TagService.Get");
 
+            var tagTable = await tagTableStore.Value;
             var stringId = EntityId.ToString();
             var tags = await tagTable.Get<ArticleTags>(stringId, stringId);
-            return tags ?? new ArticleTags(EntityId);
+            return tags != null ? new ArticleTags(EntityId) : null;
         }
 
         public async Task<IArticleTags> Update(IArticleTags Entity)
         {
+            logger.LogInformation("TagService.Update");
             var tagTable = await tagTableStore.Value;
             var tagQueue = await tagQueueStore.Value;
-            var inserted = new ArticleTags(Entity);
+            var inserted = new ArticleTags(Entity) { ETag = "*" };
             await tagTable.Replace(inserted);
             await tagQueue.InsertIntoQueue(JsonConvert.SerializeObject(new QueueMessage { ArticleId = Entity.Id, Status = QueueMessageStatus.Updated }));
 
