@@ -4,6 +4,7 @@ using AzureStorage.V2.Helpers.SimpleStorage;
 using MicroBlog.V3.Interfaces;
 using MicroBlog.V3.Services.Context;
 using MicroBlog.V3.Services.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 using System;
@@ -20,14 +21,16 @@ namespace MicroBlog.V3.Services
     {
         private readonly CloudStorageContext cscCtx;
         private readonly MicroBlogOptions opts;
+        private readonly ILogger logger;
         private LazyAsync<SimpleBlobHelper> articleBlobStorage;
         private LazyAsync<SimpleTableHelper> articleDetailsStorage;
 
-        internal ArticleService(CloudStorageContext cscCtx, MicroBlogOptions opts)
+        internal ArticleService(CloudStorageContext cscCtx, MicroBlogOptions opts, ILogger logger)
         {
             this.cscCtx = cscCtx;
             this.opts = opts;
-            articleBlobStorage = new LazyAsync<SimpleBlobHelper>(async ()=> await cscCtx.CreateBlobHelper(opts[StorageList.ArticleBlob]));
+            this.logger = logger;
+            articleBlobStorage = new LazyAsync<SimpleBlobHelper>(async () => await cscCtx.CreateBlobHelper(opts[StorageList.ArticleBlob]));
             articleDetailsStorage = new LazyAsync<SimpleTableHelper>(async () => await cscCtx.CreateTableHelper(opts[StorageList.ArticleDetails]));
         }
 
@@ -35,11 +38,14 @@ namespace MicroBlog.V3.Services
         public async Task<IClientArticle> GetByUrl(string url)
         {
             var articleDetails = await articleDetailsStorage.Value;
+
+
             var qry = TableQuery.GenerateFilterCondition("Url", QueryComparisons.Equal, url);
-            var results = (await articleDetails.EntityQuery<ArticleDetails>(qry)).ToList();
-            if (results.Count > 0)
+            var urlKey = (await articleDetails.Query<ArticleDetailsUrlId>(qry,1)).ToList();
+            if (urlKey.Count > 0)
             {
-                var details = results.First();
+                var urlData = urlKey.First();
+                var details = await articleDetails.Get<ArticleDetails>(urlData.Id, urlData.Url);
                 var jsonBlob = await (await articleBlobStorage.Value).GetJsonBlob($"{details.Id}.json");
                 var article = JsonConvert.DeserializeObject<ArticleFileData>(jsonBlob);
                 return new CompleteArticle(article, details);
@@ -59,16 +65,16 @@ namespace MicroBlog.V3.Services
             }
             catch (AggregateException excep)
             {
+                logger.LogCritical("Aggregate exception");
                 foreach (var ex in excep.InnerExceptions)
                 {
-                    Console.Write(ex.Message + " " + ex.StackTrace);
+                    logger.LogDebug(ex.Message + " " + ex.StackTrace);
                 }
                 return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
-                Console.ReadLine();
+                logger.LogDebug(ex.Message + " " + ex.StackTrace);
                 return null;
             }
         }
@@ -81,9 +87,10 @@ namespace MicroBlog.V3.Services
             var articleDetails = new ArticleDetails(article, Id);
             var articleBlobString = JsonConvert.SerializeObject(articleData);
             var articleDetailsTable = await articleDetailsStorage.Value;
-            var articleBlobStore= await articleBlobStorage.Value;
+            var articleBlobStore = await articleBlobStorage.Value;
 
             await articleDetailsTable.Insert(articleDetails);
+            await articleDetailsTable.Insert(new ArticleDetailsUrlId(articleDetails.Url, articleDetails.Id));
             await articleBlobStore.AddNewJsonFile(articleBlobString, $"{Id}.json");
 
             return new CompleteArticle(article, Id);
@@ -95,8 +102,9 @@ namespace MicroBlog.V3.Services
             var jsonBlob = await articleJsonBlob.GetJsonBlob($"{Id}.json");
             var article = JsonConvert.DeserializeObject<ArticleFileData>(jsonBlob);
             var articleTables = await this.articleDetailsStorage.Value;
-            var details = await articleTables.Get<ArticleDetails>(Id.ToString(), ArticleDetails.RowKeyDef);
-            return new CompleteArticle(article, details);
+
+            var details = await articleTables.Query<ArticleDetails>(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, Id.ToString()), 1);
+            return new CompleteArticle(article, details.FirstOrDefault());
         }
 
         public async Task Delete(IClientArticle article)
@@ -106,36 +114,44 @@ namespace MicroBlog.V3.Services
 
         public async Task Delete(Guid Id)
         {
-
             var articleTables = await this.articleDetailsStorage.Value;
             var articleBlobStore = await this.articleBlobStorage.Value;
-            var details = await articleTables.Get<ArticleDetails>(Id.ToString(), ArticleDetails.RowKeyDef);
-            await articleTables.Delete(details);
+            var details = await articleTables.Query<ArticleDetails>(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, Id.ToString()),1);
+            var articleDetails = details.FirstOrDefault();
+            var urlKey = await articleTables.Get<ArticleDetailsUrlId>(articleDetails.Url, articleDetails.Id.ToString());
+            // TODO: Schism this into one takss
+            await articleTables.Delete(articleDetails);
+            await articleTables.Delete(urlKey);
             await articleBlobStore.DeleteBlob($"{Id}.json");
         }
 
         public async Task<IClientArticle> Update(IClientArticle article)
         {
 
-            // Update is actually a delete then re-insert
-            // Maintaining the Id
+            // confirm we have not changed the url
             var articleTables = await this.articleDetailsStorage.Value;
-            await articleTables.Delete(new ArticleDetails(article));
-            return await this.InsertArticle(article, article.Id);
-
+            var articleKeys = articleTables.Get<ArticleDetailsUrlId>(article.Url, article.Id.ToString());
+            // we have not changed the url
+            if (articleKeys != null)
+            {
+                await articleTables.Replace(new ArticleDetails(article));
+                return article;
+            }
+            else
+            {
+                // we have changed the url (Which is part of the key)
+                // so we have to recreate the whole thing
+                await this.Delete(article.Id);
+                return await this.InsertArticle(article, article.Id);
+            }
         }
 
         public async Task<IEnumerable<IArticleDetails>> FindArticlDetails(DateTime start, DateTime end, int take, int skip)
         {
             var qry = $"(Published ge datetime'{start.Date}') and (Published le datetime'{end.Date}')";
             var articleTables = await this.articleDetailsStorage.Value;
-            return await articleTables.EntityQuery<ArticleDetails>(qry, take, skip);
+            return await articleTables.Query<ArticleDetails>(qry, take, skip);
         }
 
-        public static IArticleService GetManager()
-        {
-            var opts = MicroBlogConfiguration.GetOptions();
-            return new ArticleService(new CloudStorageContext(opts.StorageAccount), opts);
-        }
     }
 }

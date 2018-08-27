@@ -4,6 +4,7 @@ using AzureStorage.V2.Helpers.SimpleStorage;
 using MicroBlog.V3.Interfaces;
 using MicroBlog.V3.Services.Context;
 using MicroBlog.V3.Services.Models;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -19,12 +20,14 @@ namespace MicroBlog.V3.Services
         private LazyAsync<SimpleTableHelper> tagTableStore;
         private LazyAsync<SimpleQueueHelper> tagQueueStore;
         private readonly CloudStorageContext cscCtx;
+        private readonly ILogger logger;
 
-        internal TagService(CloudStorageContext cscCtx, MicroBlogOptions opts)
+        internal TagService(CloudStorageContext cscCtx, MicroBlogOptions opts, ILogger logger)
         {
             tagTableStore = new LazyAsync<SimpleTableHelper>(async () => await cscCtx.CreateTableHelper(opts[StorageList.TagTable]));
             tagQueueStore = new LazyAsync<SimpleQueueHelper>(async () => await cscCtx.CreateQueueHelper(opts[StorageList.TagQueue]));
             this.cscCtx = cscCtx;
+            this.logger = logger;
         }
 
         public Task<IArticleTags> Create(IEnumerable<string> tags, Guid Id)
@@ -76,12 +79,6 @@ namespace MicroBlog.V3.Services
             await tagQueue.InsertIntoQueue(JsonConvert.SerializeObject(new QueueMessage { ArticleId = Entity.Id, Status = QueueMessageStatus.Updated }));
 
             return inserted;
-        }
-
-        public static ITagService GetManager()
-        {
-            var opts = MicroBlogConfiguration.GetOptions();
-            return new TagService(new CloudStorageContext(opts.StorageAccount), opts);
         }
     }
 

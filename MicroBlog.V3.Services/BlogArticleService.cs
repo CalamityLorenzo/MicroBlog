@@ -18,36 +18,36 @@ namespace MicroBlog.V3.Services
         private readonly MicroBlogOptions opts;
         private readonly ILogger logger;
 
-        public BlogArticleService (CloudStorageContext ctx, MicroBlogOptions opts, ILogger logger)
+        public BlogArticleService(CloudStorageContext ctx, MicroBlogOptions opts, ILogger logger)
         {
             this.ctx = ctx;
             this.opts = opts;
             this.logger = logger;
         }
 
-        async Task<ICompletePost> Add(ICompletePost post)
+        public async Task<ICompletePost> Add(ICompletePost post)
         {
             // In the we deconstruct the original message, to easier to manage parts
             (var article, var tags, var categories) = new CompleteBlogEntry(post);
-            var articleService = new ArticleService(ctx, opts);
-            var tagService = new TagService(ctx, opts);
+            var articleService = new ArticleService(ctx, opts, logger);
+            var tagService = new TagService(ctx, opts, logger);
             // INsert and create a new Blog Article
             var entity = await articleService.Create(article);
             // Ditto the tsg, and categories
             var createdTags = await tagService.Create(tags.Tags.ToList(), entity.Id);
             var addedEntry = new CompleteBlogEntry(
-                                    await articleService.Get(entity.Id), 
+                                    await articleService.Get(entity.Id),
                                     createdTags,
                                     new ArticleCategories(categories.Tags, entity.Id));
             return addedEntry;
         }
 
-        async Task<ICompletePost> Update(ICompletePost post)
+        public async Task<ICompletePost> Update(ICompletePost post)
         {
             (var article, var tags, var categories) = new CompleteBlogEntry(post);
-            var articleService = new ArticleService(ctx, opts);
-            var tagService = new TagService(ctx, opts);
-            var categoriesService = new CategoryService(ctx, opts);
+            var articleService = new ArticleService(ctx, opts, logger);
+            var tagService = new TagService(ctx, opts, logger);
+            var categoriesService = new CategoryService(ctx, opts, logger);
             // INsert and create a new Blog Article
             var updatedArticle = await articleService.Update(article);
 
@@ -60,14 +60,11 @@ namespace MicroBlog.V3.Services
                                     updateCategories);
             return updatedEntry;
         }
-        async Task<bool> Retract(int PostId)
+
+        public async Task<ICompletePost> Get(Guid PostId)
         {
-            throw new ArgumentOutOfRangeException();
-        }
-        async Task<ICompletePost> Get(Guid PostId)
-        {
-            var articleService = ArticleService.GetManager();
-            var tagService = new TagService(ctx, opts);
+            var articleService = new ArticleService(ctx, opts, logger);
+            var tagService = new TagService(ctx, opts, logger);
 
             var post = await articleService.Get(PostId);
             var tags = await tagService.Get(PostId);
@@ -75,9 +72,34 @@ namespace MicroBlog.V3.Services
             return new CompleteBlogEntry(post, tags, new ArticleCategories());
 
         }
-        async Task<ICompletePost> Get(string Url)
+
+        public async Task<ICompletePost> Get(string Url)
         {
-            throw new ArgumentException();
+            var articleService = new ArticleService(ctx, opts, logger);
+            var tagService = new TagService(ctx, opts, logger);
+            var catService = new CategoryService(ctx, opts, logger);
+            var post = await articleService.GetByUrl(Url);
+            var tags = await tagService.Get(post.Id);
+            var cats = await catService.Get(post.Id);
+
+            return new CompleteBlogEntry(post, tags, cats);
+        }
+
+        public async Task<bool> Retract(Guid PostId)
+        {
+            var articleService = new ArticleService(ctx, opts, logger);
+            var post = new ClientArticle(await articleService.Get(PostId));
+            // post.Published = null;
+            var updated = post.WithPublished(null);
+            await articleService.Update(updated);
+            return true;
+
+        }
+
+        public Task<IEnumerable<IArticleDetails>> FindArticlDetails(DateTime start, DateTime end, int take, int skip)
+        {
+            var articleService = new ArticleService(ctx, opts, logger);
+            return articleService.FindArticlDetails(start, end, take, skip);
         }
     }
 }

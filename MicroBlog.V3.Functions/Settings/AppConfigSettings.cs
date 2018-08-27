@@ -42,5 +42,10 @@ namespace MicroBlog.V3.Functions.Settings
             string requestBody = new StreamReader(req.Body).ReadToEnd();
             return JsonConvert.DeserializeObject<T>(requestBody);
         }
+
+        public static MicroBlogConfiguration.MicroBlogOptions GetOptions()
+        {
+            return MicroBlogConfiguration.GetOptions();
+        }
     }
 }

@@ -17,7 +17,7 @@ namespace TestBlogv3
         {
             IConfigurationBuilder build = new ConfigurationBuilder()
                          .SetBasePath(Environment.CurrentDirectory)
-                         .AddJsonFile("config.json", false, true);
+                         .AddJsonFile("local.settings.json ", false, true);
             IConfigurationRoot config = build.Build();
             IConfigurationSection appKeys = config.GetSection("appSettings");
             ILoggerFactory loggerFactory = new LoggerFactory()
@@ -36,12 +36,11 @@ namespace TestBlogv3
             // In the function, we deconstruct the original message
             var allOpts = MicroBlogConfiguration.GetOptions();
             var cloudAcct = new CloudStorageContext(allOpts.StorageAccount);
-
-
-
+            
             // In a whorld where this is a functionapp.
             // we pass this entire BlogPost into  function
             BlogArticleService bas = new BlogArticleService(cloudAcct, allOpts, logger);
+            await bas.Add(blogOh1);
         }
     }
 }

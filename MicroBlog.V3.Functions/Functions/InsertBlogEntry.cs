@@ -11,28 +11,26 @@ using MicroBlog.V3.Services;
 using System.Threading.Tasks;
 using MicroBlog.V3.Functions.Models.App;
 using MicroBlog.V3.Functions.Settings;
+using AzureStorage.V2.Helpers.Context;
+using Microsoft.Extensions.Logging;
 
 namespace MicroBlog.V3.Functions
 {
     public static class InsertBlogEntry
     {
         [FunctionName("InsertBlogEntry")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Admin, "post", Route = null)]HttpRequest req, TraceWriter log, ExecutionContext context)
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Admin, "post", Route = null)]HttpRequest req, ILogger log, ExecutionContext context)
         {
-            log.Info("CreateBlogEntry processed a request.");
+            log.LogInformation("CreateBlogEntry processed a request.");
 
             var completeArticle = AppConfigSettings.IngestRequest<CompleteClientArticle>(req, context);
-            // Deconstruct
-            (var article, var tags, var categories) = completeArticle;
+            var articleInput = AppConfigSettings.IngestRequest<CompleteClientArticle>(req, context);
+            var mOpts = AppConfigSettings.GetOptions();
 
-            var blogService = ArticleService.GetManager();
-            var tagService = TagService.GetManager();
-            var categoryService = CategoryService.GetManager();
-            var newEntry = await blogService.Create(article);
-            var savedTags = await tagService.Create(tags.Tags, newEntry.Id);
-            var savedCategories = await categoryService.Create(categories.Tags, newEntry.Id);
+            var bas = new BlogArticleService(new CloudStorageContext(mOpts.StorageAccount), mOpts, log);
+            var article = await bas.Add(completeArticle);
 
-            return new OkObjectResult(new CompleteClientArticle(newEntry, savedTags, savedCategories));
+            return new OkObjectResult(article);
         }
     }
 }

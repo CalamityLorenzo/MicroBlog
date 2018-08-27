@@ -4,6 +4,7 @@ using AzureStorage.V2.Helpers.SimpleStorage;
 using MicroBlog.V3.Interfaces;
 using MicroBlog.V3.Services.Context;
 using MicroBlog.V3.Services.Models;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -20,12 +21,14 @@ namespace MicroBlog.V3.Services
         private LazyAsync<SimpleTableHelper> tagTableStore;
         private LazyAsync<SimpleQueueHelper> tagQueueStore;
         private readonly CloudStorageContext cscCtx;
+        private readonly ILogger logger;
 
-        internal  CategoryService(CloudStorageContext cscCtx, MicroBlogOptions opts)
+        internal  CategoryService(CloudStorageContext cscCtx, MicroBlogOptions opts, ILogger logger)
         {
             tagTableStore = new LazyAsync<SimpleTableHelper>( async ()=>await cscCtx.CreateTableHelper(opts[StorageList.CategoryTable]));
             tagQueueStore = new LazyAsync<SimpleQueueHelper>(async () => await cscCtx.CreateQueueHelper(opts[StorageList.CategoryQueue]));
             this.cscCtx = cscCtx;
+            this.logger = logger;
         }
 
         public Task<IArticleCategories> Create(IEnumerable<string> tags, Guid Id)
@@ -76,11 +79,6 @@ namespace MicroBlog.V3.Services
 
             return updated;
         }
-
-        public static ICategoryService GetManager()
-        {
-            var opts = MicroBlogConfiguration.GetOptions();
-            return new CategoryService(new CloudStorageContext(opts.StorageAccount), opts);
-        }
+        
     }
 }

@@ -24,7 +24,7 @@ namespace MicroBlog.V3.Services.Models
             Created = created;
             Published = published;
             this.PartitionKey = id.ToString();
-            this.RowKey = ArticleDetails.RowKeyDef;
+            this.RowKey = url;
         }
 
         public override void ReadEntity(IDictionary<string, EntityProperty> properties, OperationContext operationContext)
@@ -32,7 +32,11 @@ namespace MicroBlog.V3.Services.Models
             base.ReadEntity(properties, operationContext);
         }
 
-        public string Url { get; set; }
+        public string Url
+        {
+            get => this.RowKey;
+            set { this.RowKey = value; }
+        }
 
         public string Title { get; set; }
 
@@ -45,8 +49,25 @@ namespace MicroBlog.V3.Services.Models
         public DateTime? Published { get; set; }
 
         public Guid Id => Guid.Parse(PartitionKey);
-        public static string RowKeyDef => "BlogArticle";
-
+        public string Type { get => "IdUrl"; }
     }
 
+    // We store the Url as seperate row/parition key along with the guid id.
+    // So we can quickly lookup by Url. It requires a second query to get the article. 
+    // But I can live with tha.
+    class ArticleDetailsUrlId : TableEntity
+    {
+        public ArticleDetailsUrlId()
+        {
+        }
+
+
+        public ArticleDetailsUrlId(string url, Guid Id) : base(url, Id.ToString())
+        {
+
+        }
+
+        public string Url { get => PartitionKey; }
+        public string Id { get => RowKey; }
+    }
 }

@@ -28,7 +28,7 @@ namespace AzureQueryTests
             var qry = SpreadQry(startDate, endDate);
             var tStampQry = SpreadQryTimestamp(DateTime.Today.AddDays(-1), DateTime.Today.AddDays(1));
 
-            var results = await numWords.EntityQuery<NumbersAndWords>("", 1500, 43);
+            var results = await numWords.Query<NumbersAndWords>("", 1500, 43);
             Console.WriteLine(results.ToList().Count());
         }
 

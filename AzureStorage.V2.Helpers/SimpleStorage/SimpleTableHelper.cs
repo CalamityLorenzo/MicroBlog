@@ -18,19 +18,25 @@ namespace AzureStorage.V2.Helpers.SimpleStorage
             return _table.DeleteEntity(entity);
         }
 
-        public Task<IEnumerable<TEntity>> EntityQuery<TEntity>(string qryString, int Take, int Skip, Func<IComparer<TEntity>> Sort, params string[] columns) where TEntity : ITableEntity, new()
+        public async Task<IEnumerable<TEntity>> Query<TEntity>(string qryString, int? TakeCount, params string[] columns) where TEntity : ITableEntity, new()
         {
-            return _table.EntityQuery<TEntity>(qryString, Take, Skip, Sort, columns);
+            return await _table.Query<TEntity>(qryString, TakeCount, columns);
         }
 
-        public Task<IEnumerable<TEntity>> EntityQuery<TEntity>(string qryString, int Take, int Skip, params string[] columns) where TEntity : ITableEntity, new()
+
+        public Task<IEnumerable<TEntity>> Query<TEntity>(string qryString, int Take, int Skip, Func<IComparer<TEntity>> Sort, params string[] columns) where TEntity : ITableEntity, new()
         {
-            return _table.EntityQuery<TEntity>(qryString, Take, Skip, columns);
+            return _table.Query<TEntity>(qryString, Take, Skip, Sort, columns);
         }
 
-        public Task<IEnumerable<TEntity>> EntityQuery<TEntity>(string qryString, params string[] columns) where TEntity : ITableEntity, new()
+        public Task<IEnumerable<TEntity>> Query<TEntity>(string qryString, int Take, int Skip, params string[] columns) where TEntity : ITableEntity, new()
         {
-            return _table.EntityQuery<TEntity>(qryString,  columns);
+            return _table.Query<TEntity>(qryString, Take, Skip, columns);
+        }
+
+        public Task<IEnumerable<TEntity>> Query<TEntity>(string qryString, params string[] columns) where TEntity : ITableEntity, new()
+        {
+            return _table.Query<TEntity>(qryString,  columns);
         }
 
         public Task Insert(IEnumerable<ITableEntity> entities)

@@ -56,10 +56,10 @@ namespace AzureStorage.V2.Helpers
         public static async Task<T> Get<T>(this CloudTable table, string partitionKey, string rowKey) where T : class, ITableEntity, new()
         {
             var entity = await table.ExecuteAsync(TableOperation.Retrieve<T>(partitionKey, rowKey));
-            return entity.Result as T;
+            return entity?.Result as T;
         }
 
-        public static async Task<IEnumerable<TEntity>> EntityQuery<TEntity>(this CloudTable table, string qryString, params string[] columns) where TEntity : ITableEntity, new()
+        public static async Task<IEnumerable<TEntity>> Query<TEntity>(this CloudTable table, string qryString, params string[] columns) where TEntity : ITableEntity, new()
         {
             
             var tQuery = new TableQuery<TEntity>() { FilterString = qryString, SelectColumns = columns };
@@ -74,12 +74,35 @@ namespace AzureStorage.V2.Helpers
             return returnResults;
         }
 
-        public static Task<IEnumerable<TEntity>> EntityQuery<TEntity>(this CloudTable table, string qryString, int Take, int Skip, params string[] columns) where TEntity : ITableEntity, new()
+        /// <summary>
+        /// Query - 
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="table"></param>
+        /// <param name="qryString"></param>
+        /// <param name="TakeCount">Traditional Azure func TakeCount</param>
+        /// <param name="columns"></param>
+        /// <returns></returns>
+        public static async Task<IEnumerable<TEntity>> Query<TEntity>(this CloudTable table, string qryString, int? TakeCount, params string[] columns) where TEntity : ITableEntity, new()
         {
-            return TableExtensions.EntityQuery<TEntity>(table, qryString, Take, Skip, null, columns);
+            var tQuery = new TableQuery<TEntity>() { FilterString = qryString, SelectColumns = columns, TakeCount = TakeCount };
+            var token = new TableContinuationToken();
+            var returnResults = new List<TEntity>();
+            do
+            {
+                var qryRes = await table.ExecuteQuerySegmentedAsync<TEntity>(tQuery, token);
+                token = qryRes.ContinuationToken;
+                returnResults.AddRange(qryRes.Results);
+            } while (token != null);
+            return returnResults;
         }
 
-        public static async Task<IEnumerable<TEntity>> EntityQuery<TEntity>(this CloudTable table, string qryString, int Take, int Skip, Func<IComparer<TEntity>> Sort, params string[] columns) where TEntity : ITableEntity, new()
+        public static Task<IEnumerable<TEntity>> Query<TEntity>(this CloudTable table, string qryString, int Take, int Skip, params string[] columns) where TEntity : ITableEntity, new()
+        {
+            return TableExtensions.Query<TEntity>(table, qryString, Take, Skip, null, columns);
+        }
+
+        public static async Task<IEnumerable<TEntity>> Query<TEntity>(this CloudTable table, string qryString, int Take, int Skip, Func<IComparer<TEntity>> Sort, params string[] columns) where TEntity : ITableEntity, new()
         {
             var tQuery = new TableQuery<TEntity>() { FilterString = qryString, SelectColumns = columns };
 
