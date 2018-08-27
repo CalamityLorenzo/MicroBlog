@@ -130,7 +130,7 @@ namespace MicroBlog.V3.Services
                 this.logger.LogTrace($"Updating article {article.Id}");
                 // confirm we have not changed the url
                 var articleTables = await this.articleDetailsStorage.Value;
-                var articleKeys = articleTables.Get<ArticleDetailsUrlId>(article.Url, article.Id.ToString());
+                var articleKeys = await articleTables.Get<ArticleDetailsUrlId>(article.Url, article.Id.ToString());
                 // we have not changed the url
                 if (articleKeys != null)
                 {

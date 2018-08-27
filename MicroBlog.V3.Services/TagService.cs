@@ -2,6 +2,7 @@
 using AzureStorage.V2.Helpers.Context;
 using AzureStorage.V2.Helpers.SimpleStorage;
 using MicroBlog.V3.Interfaces;
+using MicroBlog.V3.Services.BaseServices;
 using MicroBlog.V3.Services.Context;
 using MicroBlog.V3.Services.Models;
 using Microsoft.Extensions.Logging;
@@ -16,87 +17,10 @@ using static MicroBlog.V3.Services.Context.MicroBlogConfiguration.MicroBlogOptio
 
 namespace MicroBlog.V3.Services
 {
-    public class TagService : ITagService
+    public class TagService : BaseCategoryService
     {
-        private LazyAsync<SimpleTableHelper> tagTableStore;
-        private LazyAsync<SimpleQueueHelper> tagQueueStore;
-        private readonly CloudStorageContext cscCtx;
-        private readonly ILogger logger;
-
-        internal TagService(CloudStorageContext cscCtx, MicroBlogOptions opts, ILogger logger)
+        public TagService(CloudStorageContext cscCtx, MicroBlogOptions opts, ILogger logger, string tableName, string queueName) : base(cscCtx, opts, logger, tableName, queueName)
         {
-            tagTableStore = new LazyAsync<SimpleTableHelper>(async () => await cscCtx.CreateTableHelper(opts[StorageList.TagTable]));
-            tagQueueStore = new LazyAsync<SimpleQueueHelper>(async () => await cscCtx.CreateQueueHelper(opts[StorageList.TagQueue]));
-            this.cscCtx = cscCtx;
-            this.logger = logger;
-        }
-
-        public Task<IArticleTags> Create(IEnumerable<string> tags, Guid Id)
-        {
-            logger.LogInformation("Createing Tags TagService.Create");
-            return Create(new ArticleTags(tags, Id));
-        }
-
-        public async Task<IArticleTags> Create(IArticleTags Entity)
-        {
-            var tagTable = await tagTableStore.Value;
-            var tagQueue = await tagQueueStore.Value;
-            await tagTable.Insert(new ArticleTags(Entity));
-            // no wait! We also need to update statistics
-            await tagQueue.InsertIntoQueue(JsonConvert.SerializeObject(new QueueMessage { ArticleId = Entity.Id, Status = QueueMessageStatus.Added }));
-            return Entity;
-        }
-
-        public async Task Delete(IArticleTags Entity)
-        {
-            try
-            {
-                logger.LogInformation("TagService.Delete");
-                await Delete(Entity.Id);
-            }
-            catch (StorageException ex)
-            {
-                logger.LogDebug("TagService.Delete STORAGE EXCEPTION", ex.Message + " " + ex.StackTrace);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                logger.LogDebug("TagService.Delete", ex.Message + " " + ex.StackTrace);
-                throw;
-            }
-        }
-
-        public async Task Delete(Guid EntityId)
-        {
-            var tagTable = await tagTableStore.Value;
-            var tagQueue = await tagQueueStore.Value;
-            var stringId = EntityId.ToString();
-            var tag = await tagTable.Get<ArticleTags>(stringId, stringId);
-            await tagTable.Delete(tag);
-            // update statistics.
-            await tagQueue.InsertIntoQueue(JsonConvert.SerializeObject(new QueueMessage { ArticleId = EntityId, Status = QueueMessageStatus.Deleted }));
-        }
-
-        public async Task<IArticleTags> Get(Guid EntityId)
-        {
-            logger.LogInformation("TagService.Get");
-
-            var tagTable = await tagTableStore.Value;
-            var stringId = EntityId.ToString();
-            var tags = await tagTable.Get<ArticleTags>(stringId, stringId);
-            return tags != null ? new ArticleTags(EntityId) : null;
-        }
-
-        public async Task<IArticleTags> Update(IArticleTags Entity)
-        {
-            logger.LogInformation("TagService.Update");
-            var tagTable = await tagTableStore.Value;
-            var tagQueue = await tagQueueStore.Value;
-            var inserted = new ArticleTags(Entity) { ETag = "*" };
-            await tagTable.Replace(inserted);
-            await tagQueue.InsertIntoQueue(JsonConvert.SerializeObject(new QueueMessage { ArticleId = Entity.Id, Status = QueueMessageStatus.Updated }));
-
-            return inserted;
         }
     }
 

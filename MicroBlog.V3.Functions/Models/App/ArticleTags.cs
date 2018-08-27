@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MicroBlog.V3.Functions.Models.App
 {
-    class ArticleTags : IArticleTags
+    class ArticleTags : IArticleCategories
     {
 
         public ArticleTags(IEnumerable<string> tags, Guid Id)

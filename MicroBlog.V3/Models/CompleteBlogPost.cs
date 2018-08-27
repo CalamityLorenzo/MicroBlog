@@ -25,7 +25,7 @@ namespace MicroBlog.V3.Entities.Models
             this.Id = id;
         }
 
-        public CompleteBlogEntry(IClientArticle article, IArticleTags tags, IArticleCategories categories) : this(article.Url, article.Title, article.Synopsis, article.Article, article.Author, tags.Tags, categories.Tags, article.Created, article.Published)
+        public CompleteBlogEntry(IClientArticle article, IArticleCategories tags, IArticleCategories categories) : this(article.Url, article.Title, article.Synopsis, article.Article, article.Author, tags.Tags, categories.Tags, article.Created, article.Published)
         {
             Id = article.Id;
         }
@@ -35,7 +35,7 @@ namespace MicroBlog.V3.Entities.Models
             Id = article.Id;
         }
 
-        public void Deconstruct(out IClientArticle clientArticle, out IArticleTags tags, out IArticleCategories cats)
+        public void Deconstruct(out IClientArticle clientArticle, out IArticleCategories tags, out IArticleCategories cats)
         {
             clientArticle = new ClientArticle(this);
             tags = new ArticleTags(this);
@@ -63,10 +63,16 @@ namespace MicroBlog.V3.Entities.Models
     [CreateMatchMethods(typeof(CompleteBlogEntry))]
     public static class CompleteBlogEntryExtensionMethods
     {
+        public static CompleteBlogEntry WithUrl(this CompleteBlogEntry article, string Url)
+        {
+            return new CompleteBlogEntry(article.Id, Url, article.Title, article.Synopsis, article.Article, article.Author, article.Tags, article.Categories, article.Created, article.Published);
+        }
+
         public static CompleteBlogEntry WithTitle(this CompleteBlogEntry article, string Title)
         {
             return new CompleteBlogEntry(article.Id, article.Url, Title, article.Synopsis, article.Article, article.Author, article.Tags, article.Categories, article.Created, article.Published);
         }
+
         public static CompleteBlogEntry WithSynopsis(this CompleteBlogEntry article, string Synopsis)
         {
             return new CompleteBlogEntry(article.Id, article.Url, article.Title, Synopsis, article.Article, article.Author, article.Tags, article.Categories, article.Created, article.Published);

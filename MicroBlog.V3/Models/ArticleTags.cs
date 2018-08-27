@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MicroBlog.V3.Entities.Models
 {
-    public class ArticleTags : IArticleTags
+    public class ArticleTags : IArticleCategories
     {
 
         public ArticleTags(IEnumerable<string> tags, Guid Id)

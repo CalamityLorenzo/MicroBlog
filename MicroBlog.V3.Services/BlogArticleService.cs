@@ -31,8 +31,8 @@ namespace MicroBlog.V3.Services
             // In the we deconstruct the original message, to easier to manage parts
             (var article, var tags, var categories) = new CompleteBlogEntry(post);
             var articleService = new ArticleService(ctx, opts, logger);
-            var tagService = new TagService(ctx, opts, logger);
-            var categoryService = new CategoryService(ctx, opts, logger);
+            var tagService = new TagService(ctx, opts, logger, opts[StorageList.TagTable], opts[StorageList.TagQueue]);
+            var categoryService = new CategoryService(ctx, opts, logger, opts[StorageList.CategoryTable], opts[StorageList.CategoryQueue]);
 
             // INsert and create a new Blog Article
             var entity = await articleService.Create(article);
@@ -55,14 +55,17 @@ namespace MicroBlog.V3.Services
                 (var article, var tags, var categories) = new CompleteBlogEntry(post);
 
                 var articleService = new ArticleService(ctx, opts, logger);
-                var tagService = new TagService(ctx, opts, logger);
-                var categoriesService = new CategoryService(ctx, opts, logger);
-                
+                var tagService = new TagService(ctx, opts, logger, opts[StorageList.TagTable], opts[StorageList.TagQueue]);
+                var categoryService = new CategoryService(ctx, opts, logger, opts[StorageList.CategoryTable], opts[StorageList.CategoryQueue]);
+
+
                 // INsert and create a new Blog Article
                 var updatedArticle = await articleService.Update(article);
-                var updateCategories = await categoriesService.Update(categories);
+
                 // Ditto the tsg, and categories
                 var updatedTags = await tagService.Update(tags);
+                var updateCategories = await categoryService.Update(categories);
+
                 var updatedEntry = new CompleteBlogEntry(
                                         updatedArticle,
                                         updatedTags,
@@ -76,26 +79,33 @@ namespace MicroBlog.V3.Services
             }
         }
 
-        public async Task<ICompletePost> Get(Guid PostId)
+        public async Task<ICompletePost> Get(Guid Id)
         {
+            logger.LogInformation($"Get Post by Id:  {Id}");
             var articleService = new ArticleService(ctx, opts, logger);
-            var tagService = new TagService(ctx, opts, logger);
+            var tagService = new TagService(ctx, opts, logger, opts[StorageList.TagTable], opts[StorageList.TagQueue]);
+            var categoryService = new CategoryService(ctx, opts, logger, opts[StorageList.CategoryTable], opts[StorageList.CategoryQueue]);
 
-            var post = await articleService.Get(PostId);
-            var tags = await tagService.Get(PostId);
 
-            return new CompleteBlogEntry(post, tags, new ArticleCategories());
+            var post = await articleService.Get(Id);
+            var tags = await tagService.Get(Id);
+            var categories = await categoryService.Get(Id);
+
+            return new CompleteBlogEntry(post, tags, categories);
 
         }
 
         public async Task<ICompletePost> Get(string Url)
         {
+            logger.LogInformation($"Get Post by Url:  {Url}");
             var articleService = new ArticleService(ctx, opts, logger);
-            var tagService = new TagService(ctx, opts, logger);
-            var catService = new CategoryService(ctx, opts, logger);
+
+            var tagService = new TagService(ctx, opts, logger, opts[StorageList.TagTable], opts[StorageList.TagQueue]);
+            var categoryService = new CategoryService(ctx, opts, logger, opts[StorageList.CategoryTable], opts[StorageList.CategoryQueue]);
+
             var post = await articleService.GetByUrl(Url);
             var tags = await tagService.Get(post.Id);
-            var cats = await catService.Get(post.Id);
+            var cats = await categoryService.Get(post.Id);
 
             return new CompleteBlogEntry(post, tags, cats);
         }

@@ -20,7 +20,7 @@ namespace TestBlogv3.Models
             Published = published;
         }
 
-        public ShagModelCompleteBlogEntry(IClientArticle article, IArticleTags tags, IArticleCategories categories) : this(article.Url, article.Title, article.Synopsis, article.Article, article.Author, tags.Tags, categories.Tags, article.Created, article.Published)
+        public ShagModelCompleteBlogEntry(IClientArticle article, IArticleCategories tags, IArticleCategories categories) : this(article.Url, article.Title, article.Synopsis, article.Article, article.Author, tags.Tags, categories.Tags, article.Created, article.Published)
         {
             Id = article.Id;
         }
@@ -30,7 +30,7 @@ namespace TestBlogv3.Models
             Id = article.Id;
         }
 
-        public void Deconstruct(out IClientArticle clientArticle, out IArticleTags tags, out IArticleCategories cats)
+        public void Deconstruct(out IClientArticle clientArticle, out IArticleCategories tags, out IArticleCategories cats)
         {
             clientArticle = new ClientArticle(this);
             tags = new ArticleTags(this);

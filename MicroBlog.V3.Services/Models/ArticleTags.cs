@@ -9,13 +9,13 @@ using System.Text;
 
 namespace MicroBlog.V3.Services.Models
 {
-    class ArticleTags : TableEntity, IArticleTags
+    class ArticleTagsTableEntity : TableEntity, IArticleCategories
     {
-        public ArticleTags()
+        public ArticleTagsTableEntity()
         {
         }
 
-        public ArticleTags(Guid EntityId) : this(new List<string>(), EntityId){}
+        public ArticleTagsTableEntity(Guid EntityId) : this(new List<string>(), EntityId){}
         public override IDictionary<string, EntityProperty> WriteEntity(OperationContext operationContext)
         {
             // Serialising List entities into fields is a tricksy business
@@ -25,9 +25,9 @@ namespace MicroBlog.V3.Services.Models
             return leDic;
         }
 
-        public ArticleTags(IArticleTags tags) : this(tags.Tags, tags.Id) { }
+        public ArticleTagsTableEntity(IArticleCategories tags) : this(tags.Tags, tags.Id) { }
 
-        public ArticleTags(IEnumerable<string> Tags, Guid Id)
+        public ArticleTagsTableEntity(IEnumerable<string> Tags, Guid Id)
         {
             this.Tags = new HashSet<string>(Tags);
             this.PartitionKey = Id.ToString();
@@ -45,9 +45,9 @@ namespace MicroBlog.V3.Services.Models
             this.Tags = JsonConvert.DeserializeObject<List<string>>(properties["Tags"].StringValue);
         }
 
-        private static Lazy<ArticleTags> EmptyVersion = new Lazy<ArticleTags>(() => new ArticleTags(new List<string>(), Guid.Empty));
+        private static Lazy<ArticleTagsTableEntity> EmptyVersion = new Lazy<ArticleTagsTableEntity>(() => new ArticleTagsTableEntity(new List<string>(), Guid.Empty));
 
-        internal static ArticleTags Empty()
+        internal static ArticleTagsTableEntity Empty()
         {
             return EmptyVersion.Value;
         }

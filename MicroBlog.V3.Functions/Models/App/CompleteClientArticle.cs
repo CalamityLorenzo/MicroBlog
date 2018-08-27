@@ -22,11 +22,11 @@ namespace MicroBlog.V3.Functions.Models.App
             Published = published;
         }
 
-        public CompleteClientArticle(IClientArticle article, IArticleTags tags, IArticleCategories categories) : this(article.Url, article.Title, article.Synopsis, article.Article, article.Author, tags.Tags, categories.Tags, article.Created, article.Published)
+        public CompleteClientArticle(IClientArticle article, IArticleCategories tags, IArticleCategories categories) : this(article.Url, article.Title, article.Synopsis, article.Article, article.Author, tags.Tags, categories.Tags, article.Created, article.Published)
         {
             Id = article.Id;
         }
-        public void Deconstruct(out IClientArticle clientArticle, out IArticleTags tags, out IArticleCategories cats)
+        public void Deconstruct(out IClientArticle clientArticle, out IArticleCategories tags, out IArticleCategories cats)
         {
             clientArticle = new BaseArticle(this);
             tags = new ArticleTags(this);

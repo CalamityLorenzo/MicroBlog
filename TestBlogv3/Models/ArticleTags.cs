@@ -5,7 +5,7 @@ using System.Text;
 
 namespace TestBlogv3.Models
 {
-    class ArticleTags : IArticleTags
+    class ArticleTags : IArticleCategories
     {
 
         public ArticleTags(IEnumerable<string> tags, Guid Id)
