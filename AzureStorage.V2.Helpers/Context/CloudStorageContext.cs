@@ -110,7 +110,7 @@ namespace AzureStorage.V2.Helpers.Context
                 BlobContainer = blobStoreName;
             }
 
-            public async Task AddNewJsonFile(string entity, string fileName)
+            public async Task AddNewStringFile(string entity, string fileName)
             {
                 var blobStore = await CsCtx.GetBlobContainer(BlobContainer);
                 var file = blobStore.GetBlockBlobReference(fileName);
@@ -131,7 +131,7 @@ namespace AzureStorage.V2.Helpers.Context
                 await file.DeleteIfExistsAsync();
             }
 
-            public async Task<string> GetJsonBlob(string fileName)
+            public async Task<string> GetStringBlob(string fileName)
             {
                 var blobStore = await CsCtx.GetBlobContainer(BlobContainer);
                 var file = blobStore.GetBlockBlobReference(fileName);
