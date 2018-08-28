@@ -13,9 +13,9 @@ namespace MicroBlog.V3.Services.Models
         public IEnumerable<string> SelectColumns => new List<string>(this.GetType().GetProperties().Select(o => o.Name));
 
         public ArticleDetails() { }
-        public ArticleDetails(IClientArticle article) : this(article.Url, article.Title, article.Synopsis, article.Author, article.Created, article.Published, article.Id) { }
-        public ArticleDetails(IClientArticle article, Guid Id) : this(article.Url, article.Title, article.Synopsis, article.Author, article.Created, article.Published, Id) { }
-        public ArticleDetails(string url, string title, string synopsis, string author, DateTime created, DateTime? published, Guid id)
+        public ArticleDetails(IClientArticle article) : this(article.Url, article.Title, article.Synopsis, article.Author, article.Created, article.Published, article.Available, article.Updated, article.Id) { }
+        public ArticleDetails(IClientArticle article, Guid Id) : this(article.Url, article.Title, article.Synopsis, article.Author, article.Created, article.Published, article.Available, article.Updated, Id) { }
+        public ArticleDetails(string url, string title, string synopsis, string author, DateTime created, DateTime? published, bool available, DateTime updated, Guid id)
         {
             Url = url ?? throw new ArgumentNullException(nameof(url));
             Title = title ?? throw new ArgumentNullException(nameof(title));
@@ -25,6 +25,8 @@ namespace MicroBlog.V3.Services.Models
             Published = published;
             this.PartitionKey = id.ToString();
             this.RowKey = url;
+            this.Available = available;
+            this.Updated = updated;
         }
 
         public override void ReadEntity(IDictionary<string, EntityProperty> properties, OperationContext operationContext)
@@ -47,6 +49,10 @@ namespace MicroBlog.V3.Services.Models
         public DateTime Created { get; set; }
 
         public DateTime? Published { get; set; }
+
+        public bool Available { get; set; }
+
+        public DateTime Updated { get; set; }
 
         public Guid Id => Guid.Parse(PartitionKey);
         public string Type { get => "IdUrl"; }

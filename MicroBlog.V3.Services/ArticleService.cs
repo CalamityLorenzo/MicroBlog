@@ -44,7 +44,7 @@ namespace MicroBlog.V3.Services
             {
                 var urlData = urlKey.First();
                 var details = await articleDetails.Get<ArticleDetails>(urlData.Id, urlData.Url);
-                var jsonBlob = await (await articleBlobStorage.Value).GetJsonBlob($"{details.Id}.json");
+                var jsonBlob = await (await articleBlobStorage.Value).GetStringBlob($"{details.Id}.json");
                 var article = JsonConvert.DeserializeObject<ArticleFileData>(jsonBlob);
                 return new CompleteArticle(article, details);
 
@@ -89,7 +89,7 @@ namespace MicroBlog.V3.Services
             var articleBlobStore = await articleBlobStorage.Value;
             await articleDetailsTable.Insert(articleDetails);
             await articleDetailsTable.Insert(new ArticleDetailsUrlId(articleDetails.Url, articleDetails.Id));
-            await articleBlobStore.AddNewJsonFile(articleBlobString, $"{Id}.json");
+            await articleBlobStore.AddNewStringFile(articleBlobString, $"{Id}.json");
 
             return new CompleteArticle(article, Id);
         }
@@ -97,7 +97,7 @@ namespace MicroBlog.V3.Services
         public async Task<IClientArticle> Get(Guid Id)
         {
             var articleJsonBlob = await articleBlobStorage.Value;
-            var jsonBlob = await articleJsonBlob.GetJsonBlob($"{Id}.json");
+            var jsonBlob = await articleJsonBlob.GetStringBlob($"{Id}.json");
             var article = JsonConvert.DeserializeObject<ArticleFileData>(jsonBlob);
             var articleTables = await this.articleDetailsStorage.Value;
 

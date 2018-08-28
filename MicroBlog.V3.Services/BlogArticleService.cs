@@ -29,6 +29,7 @@ namespace MicroBlog.V3.Services
         public async Task<ICompletePost> Add(ICompletePost post)
         {
             // In the we deconstruct the original message, to easier to manage parts
+           logger.LogInformation($"Creating new blog article {post.Title}");
             (var article, var tags, var categories) = new CompleteBlogEntry(post);
             var articleService = new ArticleService(ctx, opts, logger);
             var tagService = new TagService(ctx, opts, logger, opts[StorageList.TagTable], opts[StorageList.TagQueue]);
@@ -53,26 +54,41 @@ namespace MicroBlog.V3.Services
                 logger.LogInformation($"Update blog article {post.Id}");
 
                 (var article, var tags, var categories) = new CompleteBlogEntry(post);
-
+                // Services
                 var articleService = new ArticleService(ctx, opts, logger);
                 var tagService = new TagService(ctx, opts, logger, opts[StorageList.TagTable], opts[StorageList.TagQueue]);
                 var categoryService = new CategoryService(ctx, opts, logger, opts[StorageList.CategoryTable], opts[StorageList.CategoryQueue]);
 
-
-                // INsert and create a new Blog Article
+                // Set up the main 'document'
                 var updatedArticle = await articleService.Update(article);
+                // We changed the primaryKey (Guid, Url) so the url.
+                // so We have to delete the existing tags, and categories
+                if (post.Id != updatedArticle.Id)
+                {
+                    // Delete the ones with the original keys
+                    await tagService.Delete(tags);
+                    await categoryService.Delete(categories);
+                    // Create a complete blogpost correct keys
+                    var recreatedEntry = new CompleteBlogEntry(updatedArticle, tags, categories);
+                    (_, var updatedTags, var updatedCategories) = recreatedEntry;
+                    // create them as if it were a new post....Which it is 
+                    await tagService.Create(tags);
+                    await categoryService.Create(categories);
+                    return recreatedEntry;
+                }
+                else
+                {
+                   // normal updates of thins
+                    var updatedTags = await tagService.Update(tags);
+                    var updateCategories = await categoryService.Update(categories);
 
-                // Ditto the tsg, and categories
-                var updatedTags = await tagService.Update(tags);
-                var updateCategories = await categoryService.Update(categories);
-
-                var updatedEntry = new CompleteBlogEntry(
-                                        updatedArticle,
-                                        updatedTags,
-                                        updateCategories);
-                return updatedEntry;
+                    return  new CompleteBlogEntry(
+                                            updatedArticle,
+                                            updatedTags,
+                                            updateCategories);
+                }
             }
-            catch(StorageException ex)
+            catch (StorageException ex)
             {
                 logger.LogDebug(ex.Message, ex.StackTrace, "BlogArticleService.Update");
                 throw;
@@ -86,13 +102,11 @@ namespace MicroBlog.V3.Services
             var tagService = new TagService(ctx, opts, logger, opts[StorageList.TagTable], opts[StorageList.TagQueue]);
             var categoryService = new CategoryService(ctx, opts, logger, opts[StorageList.CategoryTable], opts[StorageList.CategoryQueue]);
 
-
             var post = await articleService.Get(Id);
             var tags = await tagService.Get(Id);
             var categories = await categoryService.Get(Id);
 
             return new CompleteBlogEntry(post, tags, categories);
-
         }
 
         public async Task<ICompletePost> Get(string Url)

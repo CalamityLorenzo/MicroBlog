@@ -25,6 +25,8 @@ namespace MicroBlog.V3.Services.Models
             Published = article.Published;
             Article = article.Article;
             Id = id;
+            Updated = article.Updated;
+            Available = article.Available;
 
         }
 
@@ -48,7 +50,8 @@ namespace MicroBlog.V3.Services.Models
         public DateTime Created { get; private set; }
         public DateTime? Published { get; private set; }
         public Guid Id { get; private set; }
-
+        public bool Available { get; private set; }
+        public DateTime Updated { get; private set; }
         private static Lazy<CompleteArticle> emptyArticle = new Lazy<CompleteArticle>(() => new CompleteArticle());
 
         internal static IClientArticle Empty()

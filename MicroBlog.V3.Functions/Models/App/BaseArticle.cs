@@ -6,16 +6,18 @@ namespace MicroBlog.V3.Functions.Models.App
     internal class BaseArticle : IClientArticle
 
     {
-        public BaseArticle(ICompletePost totalEntry)
+        public BaseArticle(ICompletePost totalArticle)
         {
-            this.Id = totalEntry.Id;
-            this.Url = totalEntry.Url;
-            this.Synopsis = totalEntry.Synopsis;
-            this.Published = totalEntry.Published;
-            this.Created = totalEntry.Created;
-            this.Author = totalEntry.Author;
-            this.Article = totalEntry.Article;
-            this.Title = totalEntry.Title;     
+            this.Id = totalArticle.Id;
+            this.Url = totalArticle.Url;
+            this.Synopsis = totalArticle.Synopsis;
+            this.Published = totalArticle.Published;
+            this.Created = totalArticle.Created;
+            this.Author = totalArticle.Author;
+            this.Article = totalArticle.Article;
+            this.Title = totalArticle.Title;
+            this.Updated = totalArticle.Updated;
+            this.Available = totalArticle.Available;
         }
 
         public BaseArticle(IClientArticle article)
@@ -28,6 +30,8 @@ namespace MicroBlog.V3.Functions.Models.App
             this.Author = article.Author;
             this.Article = article.Article;
             this.Title = article.Title;
+            this.Updated = article.Updated;
+            this.Available = article.Available;
         }
 
         public Guid Id { get; set; }
@@ -43,7 +47,8 @@ namespace MicroBlog.V3.Functions.Models.App
         public string Author { get; set; }
 
         public DateTime Created { get; set; }
-
+        public DateTime Updated { get; set; }
         public DateTime? Published { get; set; }
+        public bool Available { get; set; }
     }
 }

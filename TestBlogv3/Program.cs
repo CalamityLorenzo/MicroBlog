@@ -28,6 +28,7 @@ namespace TestBlogv3
             ILogger logger = loggerFactory.CreateLogger<Program>();
 
             DoThings(appKeys, logger).Wait();
+          //  Funky(appKeys, logger).Wait();
         }
 
         private static async Task DoThings(IConfigurationSection appKeys, ILogger logger)
@@ -37,7 +38,7 @@ namespace TestBlogv3
             var cloudAcct = new CloudStorageContext(allOpts.StorageAccount);
 
             //await Stage1(cloudAcct, allOpts, logger);
-            await Stage2(cloudAcct, allOpts, logger);
+            await Stage3(cloudAcct, allOpts, logger);
 
         }
 
@@ -45,13 +46,13 @@ namespace TestBlogv3
         {
             var s = "Welcome to Stage1";
             logger.LogInformation(s);
-            
+            var creationUpdation = DateTime.Now;
             var blogOh1 = new CompleteBlogEntry("my-new-url", "The first Title I Choosed",
                                               "On top of the old help finishes an adult handicap. When can the drivel chew? How does the senior priest do the skip? Why can't a backlog pile a concentrate? The saga wins the proprietary equilibrium. The arrogance sponsors the jazz.", "article",
                                               "Paul lawrence",
                                               new List<string> { "KEllogs", "Tonka", "Roos" },
                                               new List<string> { "New-Science", "Killer-Bees", "Rune Doogle" },
-                                              DateTime.Now, DateTime.Today.AddDays(-100));
+                                              creationUpdation, DateTime.Today.AddDays(-100), creationUpdation, true);
 
             // In a whorld where this is a functionapp.
             // we pass this entire BlogPost into  function
@@ -71,7 +72,7 @@ namespace TestBlogv3
 
             var s = "Welcome to Stage2";
             logger.LogInformation(s);
-
+            var createdUpdate = DateTime.Now;
             var blogOh2 = new CompleteBlogEntry("Further-Missions-OfMercy", "Another Blog Post I created",
                                               "Behaviour we improving at something to. Evil true high lady roof men had open. To projection considered it precaution an melancholy or. Wound young you thing worse along being ham. Dissimilar of favourable solicitude if sympathize middletons at. Forfeited up if disposing perfectly in an eagerness perceived necessary. Belonging sir curiosity discovery extremity yet forfeited prevailed own off. Travelling by introduced of mr terminated. Knew as miss my high hope quit. In curiosity shameless dependent knowledge up. ",
                                               @"Behaviour we improving at something to. Evil true high lady roof men had open. To projection considered it precaution an melancholy or. Wound young you thing worse along being ham. Dissimilar of favourable solicitude if sympathize middletons at. Forfeited up if disposing perfectly in an eagerness perceived necessary. Belonging sir curiosity discovery extremity yet forfeited prevailed own off. Travelling by introduced of mr terminated. Knew as miss my high hope quit. In curiosity shameless dependent knowledge up. 
@@ -98,7 +99,7 @@ It real sent your at. Amounted all shy set why followed declared. Repeated of en
                                               "Paul lawrence",
                                               new List<string> { "tag01", "Fag02", "Snag-3" },
                                               new List<string> { "People", "Flowers", "Dept of rage" },
-                                              DateTime.Now, DateTime.Today.AddDays(-100));
+                                              createdUpdate, DateTime.Today.AddDays(-100), DateTime.Now, true);
 
             // In a whorld where this is a functionapp.
             // we pass this entire BlogPost into  function
@@ -114,15 +115,36 @@ It real sent your at. Amounted all shy set why followed declared. Repeated of en
             logger.LogInformation($"{furtherEditedPost.Id} {furtherEditedPost.Url}");
         }
 
+        private static async Task Stage3(CloudStorageContext cloudAcct, MicroBlogConfiguration.MicroBlogOptions allOpts, ILogger logger)
+        {
+            BlogPostTests bpt = new BlogPostTests();
+            var FakePosts = bpt.CreateFakePosts().ToList();
+            BlogArticleService bas = new BlogArticleService(cloudAcct, allOpts, logger);
+            var tasks = new List<Task<ICompletePost>>();
+            FakePosts.ForEach((a) => tasks.Add(bas.Add(a)));
+            Task.WaitAll(tasks.ToArray());
+            //await bas.Add(FakePosts[0]);
+            //await bas.Add(FakePosts[1]);
+            //await bas.Add(FakePosts[2]);
+            //await bas.Add(FakePosts[3]);
+            //await bas.Add(FakePosts[4]);
+            //await bas.Add(FakePosts[5]);
+        }
+
+        private static async Task Funky(IConfigurationSection appKeys, ILogger logger)
+        {
+            BlogPostTests bpt = new BlogPostTests();
+            var items = bpt.CreateFakePosts().ToList();
+            Console.WriteLine(items[0]);
+        }
+
         private static async Task<ICompletePost> UpdatePost(BlogArticleService bas, ICompletePost blogPost)
         {
-
             return await bas.Update(blogPost);
         }
 
         private static async Task<ICompletePost> CreatePost(BlogArticleService bas, CompleteBlogEntry blogOh1)
         {
-
            return await bas.Add(blogOh1);
         }
     }

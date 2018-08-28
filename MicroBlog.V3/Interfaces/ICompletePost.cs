@@ -17,5 +17,8 @@ namespace MicroBlog.V3.Interfaces
         IEnumerable<string> Categories { get; }
         DateTime Created { get; }
         DateTime? Published { get; }
+        bool Available { get;  }
+        DateTime Updated { get; }
+
     }
 }

@@ -27,6 +27,8 @@ namespace MicroBlog.V3.Entities.Models
             Created = article.Created;
             Published = article.Published;
             Article = article.Article;
+            Updated = article.Updated;
+            Available = article.Available;
             Id = id;
 
         }
@@ -39,6 +41,8 @@ namespace MicroBlog.V3.Entities.Models
             Created = post.Created;
             Published = post.Published;
             Article = post.Article;
+            Updated = post.Updated;
+            Available = post.Available;
             Id = post.Id;
 
         }
@@ -51,6 +55,8 @@ namespace MicroBlog.V3.Entities.Models
             Created = article.Created;
             Published = article.Published;
             Article = article.Article;
+            Updated = article.Updated;
+            Available = article.Available;
             Id = article.Id;
 
         }
@@ -63,6 +69,8 @@ namespace MicroBlog.V3.Entities.Models
             Author = details.Author;
             Created = details.Created;
             Published = details.Published;
+            Updated = details.Updated;
+            Available = details.Available;
             Article = article.ArticleText;
             Id = article.Id;
         }
@@ -77,8 +85,10 @@ namespace MicroBlog.V3.Entities.Models
         public string Synopsis { get; private set; }
         public string Article { get; private set; }
         public string Author { get; private set; }
+        public DateTime Updated { get; private set; }
         public DateTime Created { get; private set; }
         public DateTime? Published { get; private set; }
+        public bool Available { get; private set; }
         public Guid Id { get; private set; }
     }
 

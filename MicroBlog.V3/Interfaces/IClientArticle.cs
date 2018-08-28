@@ -13,5 +13,7 @@ namespace MicroBlog.V3.Interfaces
         string Author { get; }  
         DateTime Created { get; }
         DateTime? Published { get; }
+        DateTime Updated { get; }
+        bool Available { get; }
     }
 }

@@ -9,7 +9,7 @@ namespace MicroBlog.V3.Functions.Models.App
     {
         public CompleteClientArticle(){}
 
-        public CompleteClientArticle(string url, string title, string synopsis, string article, string author, IEnumerable<string>Tags, IEnumerable<string>Categories,  DateTime created, DateTime? published)
+        public CompleteClientArticle(string url, string title, string synopsis, string article, string author, IEnumerable<string>Tags, IEnumerable<string>Categories,  DateTime created, DateTime? published, DateTime updated, bool available)
         {
             Url = url ?? throw new ArgumentNullException(nameof(url));
             Title = title ?? throw new ArgumentNullException(nameof(title));
@@ -20,12 +20,15 @@ namespace MicroBlog.V3.Functions.Models.App
             this.Categories = new List<string>(Categories);
             Created = created;
             Published = published;
+            this.Updated = updated;
+            this.Available = available;
         }
 
-        public CompleteClientArticle(IClientArticle article, IArticleCategories tags, IArticleCategories categories) : this(article.Url, article.Title, article.Synopsis, article.Article, article.Author, tags.Tags, categories.Tags, article.Created, article.Published)
+        public CompleteClientArticle(IClientArticle article, IArticleCategories tags, IArticleCategories categories) : this(article.Url, article.Title, article.Synopsis, article.Article, article.Author, tags.Tags, categories.Tags, article.Created, article.Published, article.Updated, article.Available)
         {
             Id = article.Id;
         }
+
         public void Deconstruct(out IClientArticle clientArticle, out IArticleCategories tags, out IArticleCategories cats)
         {
             clientArticle = new BaseArticle(this);
@@ -52,5 +55,8 @@ namespace MicroBlog.V3.Functions.Models.App
         public DateTime Created {get;set;}
 
         public DateTime? Published {get;set;}
+
+        public bool Available { get; }
+        public DateTime Updated { get; }
     }
 }
