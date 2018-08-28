@@ -30,10 +30,10 @@ namespace MicroBlog.V3.Services.BaseServices
 
         internal BaseCategoryService(CloudStorageContext cscCtx, MicroBlogOptions opts, ILogger logger, string tableName, string queueName)
         {
-            this._tableStore = new LazyAsync<SimpleTableHelper>(async () => await cscCtx.CreateTableHelper(tableName));
-            _QueueStore = new LazyAsync<SimpleQueueHelper>(async () => await cscCtx.CreateQueueHelper(queueName));
-            this.cscCtx = cscCtx;
             this.logger = logger;
+            this._tableStore = new LazyAsync<SimpleTableHelper>(async () => await cscCtx.CreateTableHelper(tableName, logger));
+            _QueueStore = new LazyAsync<SimpleQueueHelper>(async () => await cscCtx.CreateQueueHelper(queueName, logger));
+            this.cscCtx = cscCtx;
         }
 
         public Task<IArticleCategories> Create(IEnumerable<string> tags, Guid Id)
@@ -75,7 +75,7 @@ namespace MicroBlog.V3.Services.BaseServices
             var tagTable = await _tableStore.Value;
 
             var stringId = EntityId.ToString();
-            var cats = await tagTable.Query<ArticleCategoryTableEntity>(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, EntityId.ToString()),1);
+            var cats = await tagTable.Query<ArticleCategoryTableEntity>(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, EntityId.ToString()), 1);
             // return null if no categories found
             return cats != null ? new ArticleCategoryTableEntity(cats.First().Tags.ToList(), EntityId) : new ArticleCategoryTableEntity(EntityId);
         }
@@ -95,7 +95,7 @@ namespace MicroBlog.V3.Services.BaseServices
             }
             else
             {
-                 await this.Create(Entity);
+                await this.Create(Entity);
             }
 
             await queue.InsertIntoQueue(JsonConvert.SerializeObject(new QueueMessage { ArticleId = Entity.Id, Status = QueueMessageStatus.Updated }));

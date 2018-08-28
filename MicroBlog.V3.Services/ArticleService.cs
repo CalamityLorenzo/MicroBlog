@@ -30,8 +30,8 @@ namespace MicroBlog.V3.Services
             this.cscCtx = cscCtx;
             this.opts = opts;
             this.logger = logger;
-            articleBlobStorage = new LazyAsync<SimpleBlobHelper>(async () => await cscCtx.CreateBlobHelper(opts[StorageList.ArticleBlob]));
-            articleDetailsStorage = new LazyAsync<SimpleTableHelper>(async () => await cscCtx.CreateTableHelper(opts[StorageList.ArticleDetails]));
+            articleBlobStorage = new LazyAsync<SimpleBlobHelper>(async () => await cscCtx.CreateBlobHelper(opts[StorageList.ArticleBlob], logger));
+            articleDetailsStorage = new LazyAsync<SimpleTableHelper>(async () => await cscCtx.CreateTableHelper(opts[StorageList.ArticleDetails], logger));
         }
 
 

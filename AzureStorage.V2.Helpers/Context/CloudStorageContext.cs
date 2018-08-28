@@ -1,4 +1,5 @@
 ﻿using AzureStorage.V2.Helpers.SimpleStorage;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.File;
@@ -26,19 +27,19 @@ namespace AzureStorage.V2.Helpers.Context
         private readonly ConcurrentDictionary<string, CloudTable> Tables = new ConcurrentDictionary<string, CloudTable>();
         private readonly ConcurrentDictionary<string, CloudFileShare> FileShares = new ConcurrentDictionary<string, CloudFileShare>();
 
-        public async Task<SimpleQueueHelper> CreateQueueHelper(string tagQueueName)
+        public async Task<SimpleQueueHelper> CreateQueueHelper(string tagQueueName, ILogger logger)
         {
-            return new SimpleQueueHelper(this, tagQueueName);
+            return new SimpleQueueHelper(this, tagQueueName, logger);
         }
 
-        public async Task<SimpleTableHelper> CreateTableHelper(string tableName)
+        public async Task<SimpleTableHelper> CreateTableHelper(string tableName, ILogger logger)
         {
-            return new SimpleTableHelper(await this.GetTable(tableName));
+            return new SimpleTableHelper(await this.GetTable(tableName), logger);
         }
 
-        public async Task<SimpleBlobHelper> CreateBlobHelper(string tableName)
+        public async Task<SimpleBlobHelper> CreateBlobHelper(string tableName, ILogger logger)
         {
-            return new SimpleBlobHelper(this, tableName);
+            return new SimpleBlobHelper(this, tableName, logger);
         }
 
         public CloudStorageContext(string storageAccount)
@@ -104,7 +105,7 @@ namespace AzureStorage.V2.Helpers.Context
             private CloudStorageContext CsCtx { get; }
             private string BlobContainer { get; }
 
-            public SimpleBlobHelper(CloudStorageContext csCtx, string blobStoreName)
+            public SimpleBlobHelper(CloudStorageContext csCtx, string blobStoreName, object logger)
             {
                 CsCtx = csCtx;
                 BlobContainer = blobStoreName;
@@ -149,7 +150,7 @@ namespace AzureStorage.V2.Helpers.Context
         {
             private CloudStorageContext cscCtx;
             private readonly string QueueName;
-            public SimpleQueueHelper(CloudStorageContext csc, string queueName)
+            public SimpleQueueHelper(CloudStorageContext csc, string queueName, ILogger logger)
             {
                 cscCtx = csc;
                 QueueName = queueName;

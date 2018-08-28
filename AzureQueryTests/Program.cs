@@ -1,4 +1,5 @@
 ﻿using AzureStorage.V2.Helpers.Context;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
@@ -14,15 +15,21 @@ namespace AzureQueryTests
 
         private static async Task Main(string[] args)
         {
+            ILoggerFactory loggerFactory = new LoggerFactory()
+                .AddConsole(LogLevel.Trace)
+                .AddDebug();
+            ILogger logger = loggerFactory.CreateLogger<Program>();
             //   DoWuery().Wait();
             //CreateWordNumTHing(5000);
-            await BulkCreateWordNumThing(5000);
+            await BulkCreateWordNumThing(5000,logger);
         }
 
-        private static async Task DoWuery()
+        private static async Task DoWuery(ILogger logger)
         {
+
+
             var ctx = new CloudStorageContext("UseDevelopmentStorage=true");
-            var numWords = await ctx.CreateTableHelper("xpclNumWords");
+            var numWords = await ctx.CreateTableHelper("xpclNumWords", logger);
             var startDate = DateTime.Today.AddDays(10);
             var endDate = startDate.AddDays(100);
             var qry = SpreadQry(startDate, endDate);
@@ -48,7 +55,7 @@ namespace AzureQueryTests
                                                      TableQuery.GenerateFilterConditionForDate("Timestamp", QueryComparisons.LessThanOrEqual, endDate));
         }
 
-        private static async Task BulkCreateWordNumThing(int limit)
+        private static async Task BulkCreateWordNumThing(int limit, ILogger logger)
         {
             var currentDate = DateTime.Today;
             var WordNumThings = new List<NumbersAndWords>();
@@ -64,11 +71,11 @@ namespace AzureQueryTests
             }
 
             var ctx = new CloudStorageContext("UseDevelopmentStorage=true");
-            var numWords = await ctx.CreateTableHelper("xpclNumWords");
+            var numWords = await ctx.CreateTableHelper("xpclNumWords",logger);
             await numWords.Insert(WordNumThings);
         }
 
-        private static async Task CreateWordNumTHing(int limit)
+        private static async Task CreateWordNumTHing(int limit, ILogger logger)
         {
             var currentDate = DateTime.Today;
             var wordNumbTHing = new List<NumbersAndWords>();
@@ -84,7 +91,7 @@ namespace AzureQueryTests
             }
 
             var ctx = new CloudStorageContext("UseDevelopmentStorage=true");
-            var numWords = await ctx.CreateTableHelper("xpclNumWords");
+            var numWords = await ctx.CreateTableHelper("xpclNumWords",logger);
             var tasks = new List<Task>();
 
             wordNumbTHing.ForEach(a => tasks.Add(numWords.Insert(a)));
