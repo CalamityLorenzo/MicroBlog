@@ -4,6 +4,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 
 namespace MicroBlog.V3.Services.Models
@@ -24,7 +25,7 @@ namespace MicroBlog.V3.Services.Models
             Created = created;
             Published = published;
             this.PartitionKey = id.ToString();
-            this.RowKey = url;
+            this.RowKey = WebUtility.UrlEncode(url);
             this.Available = available;
             this.Updated = updated;
         }

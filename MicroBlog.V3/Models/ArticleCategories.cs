@@ -18,7 +18,7 @@ namespace MicroBlog.V3.Entities.Models
         public ArticleCategories(ICompletePost article)
         {
             Id = article.Id;
-            Tags = new List<string>(article.Tags);
+            Tags = new List<string>(article.Categories);
         }
         public Guid Id { get; set; }
         public IEnumerable<string> Tags { get; set; }

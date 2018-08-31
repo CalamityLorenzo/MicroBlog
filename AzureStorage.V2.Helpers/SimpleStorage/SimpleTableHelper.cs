@@ -8,14 +8,14 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace AzureStorage.V2.Helpers.SimpleStorage
 {
-   public class SimpleTableHelper
+    public class SimpleTableHelper
     {
         CloudTable _table;
         ILogger logger;
         public SimpleTableHelper(CloudTable table, ILogger logger)
         {
             this._table = table;
-            this.logger = logger;   
+            this.logger = logger;
         }
         public Task Delete(ITableEntity entity)
         {
@@ -24,34 +24,44 @@ namespace AzureStorage.V2.Helpers.SimpleStorage
 
         public async Task<IEnumerable<TEntity>> Query<TEntity>(string qryString, int? TakeCount, params string[] columns) where TEntity : ITableEntity, new()
         {
+            logger.LogTrace($"Query {qryString}");
             return await _table.Query<TEntity>(qryString, TakeCount, columns);
         }
 
 
+        public async Task<IEnumerable<TEntity>> QueryByPartitionKey<TEntity>(string partitionValue, int? TakeCount, params string[] columns) where TEntity : ITableEntity, new()
+        {
+            var qryString = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partitionValue);
+            logger.LogTrace($"Query {qryString}");
+            return await _table.Query<TEntity>(qryString, TakeCount, columns);
+        }
+
         public Task<IEnumerable<TEntity>> Query<TEntity>(string qryString, int Take, int Skip, Func<IComparer<TEntity>> Sort, params string[] columns) where TEntity : ITableEntity, new()
         {
+            logger.LogTrace($"Query {qryString}");
             return _table.Query<TEntity>(qryString, Take, Skip, Sort, columns);
         }
 
         public Task<IEnumerable<TEntity>> Query<TEntity>(string qryString, int Take, int Skip, params string[] columns) where TEntity : ITableEntity, new()
         {
+            logger.LogTrace($"Query {qryString}");
             return _table.Query<TEntity>(qryString, Take, Skip, columns);
         }
 
         public Task<IEnumerable<TEntity>> Query<TEntity>(string qryString, params string[] columns) where TEntity : ITableEntity, new()
         {
-            return _table.Query<TEntity>(qryString,  columns);
+            logger.LogTrace($"Query {qryString}");
+            return _table.Query<TEntity>(qryString, columns);
         }
 
         public Task Insert(IEnumerable<ITableEntity> entities)
         {
             try
             {
-                logger.LogTrace($"Entered IEnumerable SimpleTableHelper.Insert");
-
+                logger.LogTrace($"IEnumerable SimpleTableHelper.Insert");
                 return _table.Insert(entities);
             }
-            catch(StorageException ex)
+            catch (StorageException ex)
             {
                 logger.LogDebug($"{ex.Message} {ex.StackTrace} SimpleTableHelper.Insert");
                 throw;
@@ -63,7 +73,7 @@ namespace AzureStorage.V2.Helpers.SimpleStorage
 
             try
             {
-                logger.LogTrace($"Entered SimpleTableHelper.Insert");
+                logger.LogTrace($"SimpleTableHelper.Insert");
 
                 return _table.Insert(entity);
             }
@@ -76,12 +86,30 @@ namespace AzureStorage.V2.Helpers.SimpleStorage
 
         public Task<ITableEntity> Replace(ITableEntity entity)
         {
-            return _table.Replace(entity);
+            try
+            {
+                logger.LogTrace($"SimpleTableHelper.Replace");
+                return _table.Replace(entity);
+            }
+            catch (StorageException ex)
+            {
+                logger.LogDebug($"{ex.Message} {ex.StackTrace} SimpleTableHelper.Replace");
+                throw;
+            }
         }
 
         public Task<T> Get<T>(string partitionKey, string rowKey) where T : class, ITableEntity, new()
         {
-            return _table.Get<T>(partitionKey, rowKey);
+            try
+            {
+                logger.LogTrace($"SimpleTableHelper.Get");
+                return _table.Get<T>(partitionKey, rowKey);
+            }
+            catch (StorageException ex)
+            {
+                logger.LogDebug($"{ex.Message} {ex.StackTrace} SimpleTableHelper.Get");
+                throw;
+            }
         }
     }
 }

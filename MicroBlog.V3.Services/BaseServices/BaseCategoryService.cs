@@ -75,7 +75,7 @@ namespace MicroBlog.V3.Services.BaseServices
             var tagTable = await _tableStore.Value;
 
             var stringId = EntityId.ToString();
-            var cats = await tagTable.Query<ArticleCategoryTableEntity>(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, EntityId.ToString()), 1);
+            var cats = await tagTable.QueryByPartitionKey<ArticleCategoryTableEntity>(EntityId.ToString(), 1);
             // return null if no categories found
             return cats != null ? new ArticleCategoryTableEntity(cats.First().Tags.ToList(), EntityId) : new ArticleCategoryTableEntity(EntityId);
         }

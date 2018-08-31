@@ -5,11 +5,13 @@ using MicroBlog.V3.Interfaces;
 using MicroBlog.V3.Services.Context;
 using MicroBlog.V3.Services.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using static AzureStorage.V2.Helpers.Context.CloudStorageContext;
 using static MicroBlog.V3.Services.Context.MicroBlogConfiguration;
@@ -38,7 +40,8 @@ namespace MicroBlog.V3.Services
         public async Task<IClientArticle> GetByUrl(string url)
         {
             var articleDetails = await articleDetailsStorage.Value;
-            var qry = TableQuery.GenerateFilterCondition("Url", QueryComparisons.Equal, url);
+            var qry = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, WebUtility.UrlEncode(url));
+            // The url is UrlEncoded when stored as the rowkey Ensures we don;t hit any fucnny characters when storing the string
             var urlKey = (await articleDetails.Query<ArticleDetailsUrlId>(qry, 1)).ToList();
             if (urlKey.Count > 0)
             {
@@ -70,7 +73,7 @@ namespace MicroBlog.V3.Services
                 }
                 throw; 
             }
-            catch (Exception ex)
+            catch (StorageException ex)
             {
                 logger.LogDebug(ex.Message + " " + ex.StackTrace);
                 throw;
