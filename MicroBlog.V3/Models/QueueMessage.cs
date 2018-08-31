@@ -3,13 +3,18 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace MicroBlog.V3.Services.Models
+namespace MicroBlog.V3.Entities.Models
 {
     // these
-    class QueueMessage : IArticleQueueMessage
+    public class QueueMessage : IArticleQueueMessage
     {
         public QueueMessage() { }
         public QueueMessageStatus Status { get; set; }
         public Guid ArticleId { get; set; }
+
+        public override string ToString()
+        {
+            return $"{ArticleId.ToString()} {Status}";
+        }
     }
 }

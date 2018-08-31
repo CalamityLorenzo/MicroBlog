@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace MicroBlog.V3.Functions
 {
-    public static class UpdateBlogEntry_
+    public static class UpdateBlogEntry
     {
         [FunctionName("UpdateBlogEntry")]
         public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequest req, ILogger log, ExecutionContext context)

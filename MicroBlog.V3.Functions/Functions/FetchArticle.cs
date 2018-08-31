@@ -20,7 +20,7 @@ namespace MicroBlog.V3.Functions
     public static class FetchArticle
     {
         [FunctionName("FetchArticle")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequest req, ILogger log, ExecutionContext context)
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]HttpRequest req, ILogger log, ExecutionContext context)
         {
             log.LogInformation("CreateBlogEntry processed a request.");
             

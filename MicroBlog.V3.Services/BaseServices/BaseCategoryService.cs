@@ -84,7 +84,6 @@ namespace MicroBlog.V3.Services.BaseServices
         {
             // updating here means, checking to see if we actually had any to begin with.
             // If not then we are actually adding!.
-
             var existing = await this.Get(Entity.Id);
             var tagTable = await _tableStore.Value;
             var queue = await _QueueStore.Value;
